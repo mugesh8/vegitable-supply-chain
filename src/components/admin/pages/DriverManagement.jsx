@@ -1,12 +1,30 @@
-import React, { useState } from 'react';
-import { Search, ChevronDown, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Search, ChevronDown, Plus, ChevronLeft, ChevronRight, MoreVertical } from 'lucide-react';
+import ConfirmDeleteModal from '../../common/ConfirmDeleteModal';
 
 const DriverManagement = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [vehicleFilter, setVehicleFilter] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
+  const [openDropdown, setOpenDropdown] = useState(null);
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, driverId: null, driverName: '' });
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.dropdown-container')) {
+        setOpenDropdown(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const drivers = [
     {
@@ -126,20 +144,23 @@ const DriverManagement = () => {
             All Drivers
           </button>
           <button
-            onClick={() => setActiveTab('collection')}
-            className={`px-5 py-2.5 rounded-lg font-medium transition-all text-sm ${activeTab === 'collection' ? 'bg-[#0D7C66] text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'}`}
+            onClick={() => navigate('/drivers/DRV-001')}
+            className="px-5 py-2.5 rounded-lg font-medium transition-all text-sm bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"
           >
             Collection Drivers
           </button>
           <button
-            onClick={() => setActiveTab('airport')}
-            className={`px-5 py-2.5 rounded-lg font-medium transition-all text-sm ${activeTab === 'airport' ? 'bg-[#0D7C66] text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'}`}
+            onClick={() => navigate('/drivers/DRV-001/airport')}
+            className="px-5 py-2.5 rounded-lg font-medium transition-all text-sm bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"
           >
             Airport Delivery
           </button>
         </div>
 
-        <button className="px-5 py-2.5 bg-[#0D7C66] hover:bg-[#0a6354] text-white rounded-lg font-medium transition-colors flex items-center gap-2 shadow-sm text-sm">
+        <button 
+          onClick={() => navigate('/drivers/add')}
+          className="px-5 py-2.5 bg-[#0D7C66] hover:bg-[#0a6354] text-white rounded-lg font-medium transition-colors flex items-center gap-2 shadow-sm text-sm"
+        >
           <Plus className="w-4 h-4" />
           Add Driver
         </button>
@@ -147,8 +168,8 @@ const DriverManagement = () => {
 
       {/* Search and Filters */}
       <div className="bg-white rounded-xl shadow-sm border border-[#D0E0DB] p-4 mb-6">
-        <div className="flex flex-col lg:flex-row gap-4 items-end">
-          <div className="flex-1 relative">
+        <div className="flex flex-col gap-4">
+          <div className="w-full relative">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#6B8782]" />
             <input
               type="text"
@@ -159,38 +180,40 @@ const DriverManagement = () => {
             />
           </div>
 
-          <div className="relative min-w-[160px]">
-            <div className="text-xs text-[#6B8782] mb-1 font-medium">Status: {statusFilter}</div>
-            <div className="relative">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-4 py-3 border border-[#D0E0DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D8568] focus:border-transparent appearance-none bg-white text-sm font-medium text-[#0D5C4D] cursor-pointer"
-              >
-                <option>All</option>
-                <option>Available</option>
-                <option>On Trip</option>
-                <option>Break</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#6B8782] pointer-events-none" />
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1 min-w-0">
+              <div className="text-xs text-[#6B8782] mb-1 font-medium">Status: {statusFilter}</div>
+              <div className="relative">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full px-4 py-3 border border-[#D0E0DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D8568] focus:border-transparent appearance-none bg-white text-sm font-medium text-[#0D5C4D] cursor-pointer"
+                >
+                  <option>All</option>
+                  <option>Available</option>
+                  <option>On Trip</option>
+                  <option>Break</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#6B8782] pointer-events-none" />
+              </div>
             </div>
-          </div>
 
-          <div className="relative min-w-[160px]">
-            <div className="text-xs text-[#6B8782] mb-1 font-medium">Vehicle: {vehicleFilter}</div>
-            <div className="relative">
-              <select
-                value={vehicleFilter}
-                onChange={(e) => setVehicleFilter(e.target.value)}
-                className="w-full px-4 py-3 border border-[#D0E0DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D8568] focus:border-transparent appearance-none bg-white text-sm font-medium text-[#0D5C4D] cursor-pointer"
-              >
-                <option>All</option>
-                <option>Tata Ace</option>
-                <option>Mahindra Bolero</option>
-                <option>Ashok Leyland</option>
-                <option>Eicher Pro</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#6B8782] pointer-events-none" />
+            <div className="relative flex-1 min-w-0">
+              <div className="text-xs text-[#6B8782] mb-1 font-medium">Vehicle: {vehicleFilter}</div>
+              <div className="relative">
+                <select
+                  value={vehicleFilter}
+                  onChange={(e) => setVehicleFilter(e.target.value)}
+                  className="w-full px-4 py-3 border border-[#D0E0DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D8568] focus:border-transparent appearance-none bg-white text-sm font-medium text-[#0D5C4D] cursor-pointer"
+                >
+                  <option>All</option>
+                  <option>Tata Ace</option>
+                  <option>Mahindra Bolero</option>
+                  <option>Ashok Leyland</option>
+                  <option>Eicher Pro</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#6B8782] pointer-events-none" />
+              </div>
             </div>
           </div>
         </div>
@@ -243,9 +266,46 @@ const DriverManagement = () => {
                     <div className="text-sm font-semibold text-[#0D5C4D]">{driver.workingHours}</div>
                   </td>
                   <td className="px-6 py-4">
-                    <button className="px-5 py-2 bg-[#0D7C66] hover:bg-[#0a6354] text-white rounded-lg text-xs font-medium transition-colors">
-                      View Details
-                    </button>
+                    <div className="relative dropdown-container">
+                      <button
+                        onClick={() => setOpenDropdown(openDropdown === driver.id ? null : driver.id)}
+                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                      >
+                        <MoreVertical className="w-4 h-4 text-gray-600" />
+                      </button>
+                      
+                      {openDropdown === driver.id && (
+                        <div className="absolute right-0 top-10 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[120px]">
+                          <button
+                            onClick={() => {
+                              navigate(`/drivers/${driver.id}`);
+                              setOpenDropdown(null);
+                            }}
+                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 rounded-t-lg"
+                          >
+                            View
+                          </button>
+                          <button
+                            onClick={() => {
+                              navigate(`/drivers/${driver.id}/edit`);
+                              setOpenDropdown(null);
+                            }}
+                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => {
+                              setDeleteModal({ isOpen: true, driverId: driver.id, driverName: driver.name });
+                              setOpenDropdown(null);
+                            }}
+                            className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 rounded-b-lg"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -289,6 +349,17 @@ const DriverManagement = () => {
           </div>
         </div>
       </div>
+
+      <ConfirmDeleteModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, driverId: null, driverName: '' })}
+        onConfirm={() => {
+          console.log('Deleting driver:', deleteModal.driverId);
+          setDeleteModal({ isOpen: false, driverId: null, driverName: '' });
+        }}
+        title="Delete Driver"
+        message={`Are you sure you want to delete ${deleteModal.driverName}? This action cannot be undone.`}
+      />
     </div>
   );
 };

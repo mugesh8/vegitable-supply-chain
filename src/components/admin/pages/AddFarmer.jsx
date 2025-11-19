@@ -1,41 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, X } from 'lucide-react';
+import { createFarmer } from '../../../api/farmerApi';
+import { getAllProducts } from '../../../api/productApi';
 
 const AddFarmer = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    farmerName: '',
-    registrationNumber: '',
+    farmer_name: '',
+    registration_number: '',
     address: '',
     city: '',
     state: '',
-    pincode: '',
-    contactPerson: '',
-    tapeColor: '',
-    dialingPerson: '',
-    primaryPhone: '',
-    secondaryPhone: '',
+    pin_code: '',
+    contact_person: '',
+    tape_color: '',
+    dialing_person: '',
+    primary_phone: '',
+    secondary_phone: '',
     email: '',
     vegetables: [],
-    accountHolderName: '',
-    bankName: '',
-    accountNumber: '',
-    ifscCode: ''
+    account_holder_name: '',
+    bank_name: '',
+    account_number: '',
+    IFSC_code: '',
+    status: 'active'
   });
 
-  const [selectedVegetables, setSelectedVegetables] = useState([
-    { name: 'Tomato', color: 'bg-blue-100 text-blue-700' },
-    { name: 'Onion', color: 'bg-green-100 text-green-700' },
-    { name: 'Potato', color: 'bg-yellow-100 text-yellow-700' }
-  ]);
+  const [selectedVegetables, setSelectedVegetables] = useState([]);
 
-  const availableVegetables = [
-    'Tomato', 'Onion', 'Potato', 'Cabbage', 'Carrot', 'Broccoli', 
-    'Cauliflower', 'Spinach', 'Lettuce', 'Cucumber', 'Pepper', 'Eggplant'
-  ];
+  const [availableVegetables, setAvailableVegetables] = useState([]);
 
-  const bankList = [
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await getAllProducts(1, 100);
+        const products = response.data || [];
+        setAvailableVegetables(products.map(p => ({ id: p.pid, name: p.product_name })));
+      } catch (error) {
+        console.error('Failed to fetch products:', error);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  // Available options (for future use)
+  const _bankList = [
     'State Bank of India',
     'HDFC Bank',
     'ICICI Bank',
@@ -46,7 +56,7 @@ const AddFarmer = () => {
     'Union Bank of India'
   ];
 
-  const indianStates = [
+  const _indianStates = [
     'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
     'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka',
     'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram',
@@ -56,18 +66,87 @@ const AddFarmer = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const fieldMap = {
+      farmerName: 'farmer_name',
+      registrationNumber: 'registration_number',
+      contactPerson: 'contact_person',
+      tapeColor: 'tape_color',
+      dialingPerson: 'dialing_person',
+      primaryPhone: 'primary_phone',
+      secondaryPhone: 'secondary_phone',
+      pincode: 'pin_code',
+      accountHolderName: 'account_holder_name',
+      bankName: 'bank_name',
+      accountNumber: 'account_number',
+      ifscCode: 'IFSC_code'
+    };
+    const fieldName = fieldMap[name] || name;
+    setFormData(prev => ({ ...prev, [fieldName]: value }));
   };
 
   const removeVegetable = (index) => {
     setSelectedVegetables(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    // Handle form submission
-    navigate('/farmers');
+    
+    // Check if user is authenticated
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError('Please login to continue.');
+      setTimeout(() => navigate('/login'), 1500);
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    setSuccess(false);
+
+    try {
+      const farmerPayload = {
+        farmer_name: formData.farmer_name,
+        registration_number: formData.registration_number,
+        phone: formData.primary_phone,
+        secondary_phone: formData.secondary_phone,
+        email: formData.email,
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+        pin_code: formData.pin_code,
+        contact_person: formData.contact_person,
+        tape_color: formData.tape_color,
+        dealing_person: formData.dialing_person,
+        product_list: selectedVegetables,
+        status: formData.status,
+        account_holder_name: formData.account_holder_name,
+        bank_name: formData.bank_name,
+        account_number: formData.account_number,
+        IFSC_code: formData.IFSC_code
+      };
+
+      const response = await createFarmer(farmerPayload);
+      console.log('Farmer created successfully:', response);
+      setSuccess(true);
+      
+      setTimeout(() => {
+        navigate('/farmers');
+      }, 1500);
+    } catch (err) {
+      console.error('Error creating farmer:', err);
+      // if (err.response?.status === 401) {
+      //   setError('Session expired. Please login again.');
+      //   setTimeout(() => navigate('/login'), 2000);
+      // } else {
+      //   setError(err.response?.data?.message || err.message || 'Failed to create farmer. Please try again.');
+      // }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
 
@@ -88,6 +167,20 @@ const AddFarmer = () => {
 
         {/* Form Content */}
         <div className="bg-white rounded-2xl shadow-sm border border-[#D0E0DB] p-6">
+        {/* Success Message */}
+        {success && (
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <p className="text-green-800 text-sm font-medium">✓ Farmer created successfully! Redirecting...</p>
+          </div>
+        )}
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-800 text-sm font-medium">✗ {error}</p>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Personal Information */}
           <div>
@@ -102,7 +195,7 @@ const AddFarmer = () => {
                   type="text"
                   name="farmerName"
                   placeholder="Enter Farmer Name"
-                  value={formData.farmerName}
+                  value={formData.farmer_name}
                   onChange={handleInputChange}
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D7C66] focus:border-transparent text-sm"
                   required
@@ -118,7 +211,7 @@ const AddFarmer = () => {
                   type="text"
                   name="registrationNumber"
                   placeholder="UST/CTN Number"
-                  value={formData.registrationNumber}
+                  value={formData.registration_number}
                   onChange={handleInputChange}
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D7C66] focus:border-transparent text-sm"
                 />
@@ -181,7 +274,7 @@ const AddFarmer = () => {
                   type="text"
                   name="pincode"
                   placeholder="Enter 6-digit pincode"
-                  value={formData.pincode}
+                  value={formData.pin_code}
                   onChange={handleInputChange}
                   maxLength="6"
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D7C66] focus:border-transparent text-sm"
@@ -198,7 +291,7 @@ const AddFarmer = () => {
                   type="text"
                   name="contactPerson"
                   placeholder="Full name of contact person"
-                  value={formData.contactPerson}
+                  value={formData.contact_person}
                   onChange={handleInputChange}
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D7C66] focus:border-transparent text-sm"
                   required
@@ -214,7 +307,7 @@ const AddFarmer = () => {
                   type="text"
                   name="tapeColor"
                   placeholder="Enter Tape Color"
-                  value={formData.tapeColor}
+                  value={formData.tape_color}
                   onChange={handleInputChange}
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D7C66] focus:border-transparent text-sm"
                 />
@@ -229,7 +322,7 @@ const AddFarmer = () => {
                   type="text"
                   name="dialingPerson"
                   placeholder="Enter Dialing Person"
-                  value={formData.dialingPerson}
+                  value={formData.dialing_person}
                   onChange={handleInputChange}
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D7C66] focus:border-transparent text-sm"
                 />
@@ -250,7 +343,7 @@ const AddFarmer = () => {
                   type="tel"
                   name="primaryPhone"
                   placeholder="+91 XXXXX XXXXX"
-                  value={formData.primaryPhone}
+                  value={formData.primary_phone}
                   onChange={handleInputChange}
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D7C66] focus:border-transparent text-sm"
                   required
@@ -282,7 +375,7 @@ const AddFarmer = () => {
                   type="tel"
                   name="secondaryPhone"
                   placeholder="Optional"
-                  value={formData.secondaryPhone}
+                  value={formData.secondary_phone}
                   onChange={handleInputChange}
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D7C66] focus:border-transparent text-sm"
                 />
@@ -298,39 +391,44 @@ const AddFarmer = () => {
                 Vegetables Supplied <span className="text-red-500">*</span>
               </label>
               <select
+                onChange={(e) => {
+                  const value = parseInt(e.target.value);
+                  if (value && !selectedVegetables.includes(value)) {
+                    setSelectedVegetables([...selectedVegetables, value]);
+                  }
+                  e.target.value = '';
+                }}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D7C66] focus:border-transparent text-sm appearance-none bg-white mb-3"
               >
                 <option value="">Select items (Multiple selection)</option>
-                {availableVegetables.map(veg => (
-                  <option key={veg} value={veg}>{veg}</option>
+                {availableVegetables.filter(veg => !selectedVegetables.includes(veg.id)).map(veg => (
+                  <option key={veg.id} value={veg.id}>{veg.name}</option>
                 ))}
               </select>
 
               {/* Selected Vegetables */}
-              <div className="flex flex-wrap gap-2">
-                {selectedVegetables.map((veg, index) => (
-                  <span
-                    key={index}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium ${veg.color} flex items-center gap-2`}
-                  >
-                    {veg.name}
-                    <button
-                      type="button"
-                      onClick={() => removeVegetable(index)}
-                      className="hover:opacity-70"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </span>
-                ))}
-                <button
-                  type="button"
-                  className="px-3 py-1.5 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition-colors flex items-center gap-1"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add More
-                </button>
-              </div>
+              {selectedVegetables.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {selectedVegetables.map((vegId, index) => {
+                    const veg = availableVegetables.find(v => v.id === vegId);
+                    return (
+                      <span
+                        key={index}
+                        className="px-3 py-1.5 rounded-lg text-sm font-medium bg-blue-100 text-blue-700 flex items-center gap-2"
+                      >
+                        {veg?.name}
+                        <button
+                          type="button"
+                          onClick={() => removeVegetable(index)}
+                          className="hover:opacity-70"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
 
@@ -347,7 +445,7 @@ const AddFarmer = () => {
                   type="text"
                   name="accountHolderName"
                   placeholder="As per bank account"
-                  value={formData.accountHolderName}
+                  value={formData.account_holder_name}
                   onChange={handleInputChange}
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D7C66] focus:border-transparent text-sm"
                   required
@@ -363,7 +461,7 @@ const AddFarmer = () => {
                   type="text"
                   name="bankName"
                   placeholder="Enter bank name"
-                  value={formData.bankName}
+                  value={formData.bank_name}
                   onChange={handleInputChange}
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D7C66] focus:border-transparent text-sm"
                   required
@@ -379,7 +477,7 @@ const AddFarmer = () => {
                   type="text"
                   name="accountNumber"
                   placeholder="Enter account number"
-                  value={formData.accountNumber}
+                  value={formData.account_number}
                   onChange={handleInputChange}
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D7C66] focus:border-transparent text-sm"
                   required
@@ -395,7 +493,7 @@ const AddFarmer = () => {
                   type="text"
                   name="ifscCode"
                   placeholder="Enter IFSC code"
-                  value={formData.ifscCode}
+                  value={formData.IFSC_code}
                   onChange={handleInputChange}
                   maxLength="11"
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D7C66] focus:border-transparent text-sm uppercase"
@@ -406,20 +504,46 @@ const AddFarmer = () => {
           </div>
 
           {/* Form Actions */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6 border-t border-gray-200">
-            <button
-              type="submit"
-              className="w-full sm:w-auto px-8 py-3 bg-[#0D7C66] hover:bg-[#0a6354] text-white font-semibold rounded-lg transition-colors shadow-sm"
-            >
-              Add Farmer
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate('/farmers')}
-              className="w-full sm:w-auto px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors shadow-sm"
-            >
-              Cancel
-            </button>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-gray-200">
+            {/* Farmer Status Toggle */}
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-700 font-medium">Farmer Status</span>
+              <button
+                type="button"
+                onClick={() => setFormData(prev => ({ ...prev, status: prev.status === 'active' ? 'inactive' : 'active' }))}
+                className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
+                  formData.status === 'active' ? 'bg-[#0D7C66]' : 'bg-gray-300'
+                }`}
+              >
+                <span
+                  className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                    formData.status === 'active' ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+              <span className={`text-sm font-medium ${formData.status === 'active' ? 'text-[#0D7C66]' : 'text-gray-500'}`}>
+                {formData.status === 'active' ? 'Active' : 'Inactive'}
+              </span>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => navigate('/farmers')}
+                disabled={isLoading}
+                className="px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="px-8 py-3 bg-[#0D7C66] hover:bg-[#0a6354] text-white font-semibold rounded-lg transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? 'Adding Farmer...' : 'Add Farmer'}
+              </button>
+            </div>
           </div>
         </form>
         </div>

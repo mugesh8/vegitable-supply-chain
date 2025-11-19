@@ -15,7 +15,8 @@ import {
   Shield, 
   Bell, 
   Settings,
-  X
+  X,
+  Plus
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, onClose }) => {
@@ -35,6 +36,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { icon: Package, label: 'Suppliers', path: '/suppliers' },
     { icon: UserCheck, label: 'Third Party', path: '/third-party' },
     { icon: DollarSign, label: 'Labour', path: '/labour' },
+    { icon: Plus, label: 'Add Product', path: '/products/add' },
     { icon: ShoppingCart, label: 'Orders', path: '/orders' },
     { icon: ClipboardList, label: 'Order Assign', path: '/order-assign' },
     { icon: CreditCard, label: 'Payouts', path: '/payouts' },

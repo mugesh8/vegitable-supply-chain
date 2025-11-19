@@ -1,11 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Plus, MoreVertical } from 'lucide-react';
+import ConfirmDeleteModal from '../../common/ConfirmDeleteModal';
 
 const ThirdPartyManagement = () => {
   const navigate = useNavigate();
   const [openDropdown, setOpenDropdown] = useState(null);
   const dropdownRef = useRef(null);
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, thirdPartyId: null, thirdPartyName: '' });
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -18,12 +20,14 @@ const ThirdPartyManagement = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleAction = (action, thirdPartyId) => {
+  const handleAction = (action, thirdPartyId, thirdPartyName) => {
     setOpenDropdown(null);
     if (action === 'view') {
       navigate(`/third-party/${thirdPartyId}`);
     } else if (action === 'edit') {
       navigate(`/third-party/${thirdPartyId}/edit`);
+    } else if (action === 'delete') {
+      setDeleteModal({ isOpen: true, thirdPartyId, thirdPartyName });
     }
   };
 
@@ -253,7 +257,7 @@ const ThirdPartyManagement = () => {
                             Edit
                           </button>
                           <button
-                            onClick={() => handleAction('delete', thirdParty.id)}
+                            onClick={() => handleAction('delete', thirdParty.id, thirdParty.name)}
                             className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-[#F0F4F3] transition-colors"
                           >
                             Delete
@@ -303,6 +307,17 @@ const ThirdPartyManagement = () => {
           </div>
         </div>
       </div>
+
+      <ConfirmDeleteModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, thirdPartyId: null, thirdPartyName: '' })}
+        onConfirm={() => {
+          console.log('Deleting third party:', deleteModal.thirdPartyId);
+          setDeleteModal({ isOpen: false, thirdPartyId: null, thirdPartyName: '' });
+        }}
+        title="Delete Third Party"
+        message={`Are you sure you want to delete ${deleteModal.thirdPartyName}? This action cannot be undone.`}
+      />
     </div>
   );
 };

@@ -1,11 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Plus, MoreVertical } from 'lucide-react';
+import ConfirmDeleteModal from '../../common/ConfirmDeleteModal';
 
 const SupplierDashboard = () => {
   const navigate = useNavigate();
   const [openDropdown, setOpenDropdown] = useState(null);
   const dropdownRef = useRef(null);
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, supplierId: null, supplierName: '' });
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -18,12 +20,14 @@ const SupplierDashboard = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleAction = (action, supplierId) => {
+  const handleAction = (action, supplierId, supplierName) => {
     setOpenDropdown(null);
     if (action === 'view') {
       navigate(`/suppliers/${supplierId}`);
     } else if (action === 'edit') {
       navigate(`/suppliers/${supplierId}/edit`);
+    } else if (action === 'delete') {
+      setDeleteModal({ isOpen: true, supplierId, supplierName });
     }
   };
 
@@ -267,7 +271,7 @@ const SupplierDashboard = () => {
                             Edit
                           </button>
                           <button
-                            onClick={() => handleAction('delete', supplier.id)}
+                            onClick={() => handleAction('delete', supplier.id, supplier.name)}
                             className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-[#F0F4F3] transition-colors"
                           >
                             Delete
@@ -318,6 +322,17 @@ const SupplierDashboard = () => {
           </div>
         </div>
       </div>
+
+      <ConfirmDeleteModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, supplierId: null, supplierName: '' })}
+        onConfirm={() => {
+          console.log('Deleting supplier:', deleteModal.supplierId);
+          setDeleteModal({ isOpen: false, supplierId: null, supplierName: '' });
+        }}
+        title="Delete Supplier"
+        message={`Are you sure you want to delete ${deleteModal.supplierName}? This action cannot be undone.`}
+      />
     </div>
   );
 };

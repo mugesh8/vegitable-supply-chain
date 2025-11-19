@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { loginAdmin } from '../../../api/authApi';
 
 const VeggiChainLogin = () => {
   const navigate = useNavigate();
@@ -11,6 +12,7 @@ const VeggiChainLogin = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -43,12 +45,23 @@ const VeggiChainLogin = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (validateForm()) {
-      console.log('Form submitted:', formData);
-      // Add your login logic here
+      setLoading(true);
+      try {
+        const data = await loginAdmin(formData.email, formData.password);
+        JSON.stringify(localStorage.setItem('token', data.token));
+        if (formData.rememberMe) {
+          localStorage.setItem('rememberMe', 'true');
+        }
+        navigate('/dashboard');
+      } catch (error) {
+        setErrors({ general: error.message });
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -130,6 +143,11 @@ const VeggiChainLogin = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
+          {errors.general && (
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm">
+              {errors.general}
+            </div>
+          )}
           {/* Email Input */}
           <div>
             <div className="relative">
@@ -210,9 +228,10 @@ const VeggiChainLogin = () => {
           {/* Sign In Button */}
           <button
             type="submit"
-            className="w-full bg-gradient-to-r from-teal-700 to-teal-600 hover:from-teal-800 hover:to-teal-700 text-white font-semibold py-3.5 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+            disabled={loading}
+            className="w-full bg-gradient-to-r from-teal-700 to-teal-600 hover:from-teal-800 hover:to-teal-700 text-white font-semibold py-3.5 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Sign In
+            {loading ? 'Signing In...' : 'Sign In'}
           </button>
 
           {/* Divider */}

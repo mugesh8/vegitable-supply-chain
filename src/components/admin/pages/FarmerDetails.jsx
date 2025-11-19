@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Phone, Mail, MapPin, TrendingUp, Package, ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { getFarmerById } from '../../../api/farmerApi';
 
 const FarmerDetails = () => {
   const navigate = useNavigate();
@@ -11,37 +12,13 @@ const FarmerDetails = () => {
     navigate('/farmers');
   };
 
-  const farmerData = {
-    '1': {
-      id: 'VFN-001',
-      name: 'Green Fields Farm',
-      type: 'Farmer',
-      phone: '+91 98765 43210',
-      email: 'contact@greenfields.in',
-      alternatePhone: '+91 98765 43211',
-      produce: 'Onions, Cabbage',
-      supplyFrequency: 'Weekly - Every Monday & Thursday',
-      region: 'Tamil Nadu, India',
-      address: '123 Farm Road, Coimbatore District, Tamil Nadu - 641001, India',
-      status: 'Active',
-      rating: '4.8',
-      ratingText: 'Excellent Rating',
-      reviewCount: '189',
-      totalOrders: '247',
-      onTimeDelivery: '95%',
-      revenue: '₹12.4 Lakhs',
-      qualityScore: '9.5/10',
-      responseTime: '2.5 hrs',
-      supplyReliability: '98%',
-      activeSince: '10 Months'
-    }
-  };
-
   useEffect(() => {
-    const fetchFarmer = () => {
-      const farmerInfo = farmerData[id];
-      if (farmerInfo) {
-        setFarmer(farmerInfo);
+    const fetchFarmer = async () => {
+      try {
+        const response = await getFarmerById(id);
+        setFarmer(response.data);
+      } catch (error) {
+        console.error('Failed to fetch farmer:', error);
       }
     };
 
@@ -95,12 +72,12 @@ const FarmerDetails = () => {
       <div className="rounded-lg shadow-sm p-6 mb-6">
         <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
           <div className="w-24 h-24 bg-teal-800 rounded-full flex items-center justify-center flex-shrink-0">
-            <span className="text-white text-3xl font-bold">{farmer?.name?.substring(0, 2).toUpperCase() || 'FN'}</span>
+            <span className="text-white text-3xl font-bold">{farmer?.farmer_name?.substring(0, 2).toUpperCase() || 'FN'}</span>
           </div>
           
           <div className="flex-1">
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">{farmer?.name || 'N/A'}</h2>
-            <p className="text-gray-600 mb-2">Farmer ID: {farmer?.id || 'N/A'}</p>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">{farmer?.farmer_name || 'N/A'}</h2>
+            <p className="text-gray-600 mb-2">Farmer ID: {farmer?.registration_number || 'N/A'}</p>
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <span className="flex items-center gap-1">
                 <span className="text-red-500">🛒</span>
@@ -116,14 +93,14 @@ const FarmerDetails = () => {
               {farmer?.type || 'Farmer'}
             </span>
             <span className={`px-4 py-1 rounded-full text-sm font-medium border flex items-center gap-2 ${
-              farmer?.status === 'Active' 
+              farmer?.status === 'active' 
                 ? 'bg-green-50 text-green-700 border-green-200' 
                 : 'bg-red-50 text-red-700 border-red-200'
             }`}>
               <span className={`w-2 h-2 rounded-full ${
-                farmer?.status === 'Active' ? 'bg-green-500' : 'bg-red-500'
+                farmer?.status === 'active' ? 'bg-green-500' : 'bg-red-500'
               }`}></span>
-              {farmer?.status || 'Unknown'}
+              {farmer?.status === 'active' ? 'Active' : 'Inactive'}
             </span>
           </div>
         </div>
@@ -149,7 +126,7 @@ const FarmerDetails = () => {
             
             <div>
               <p className="text-xs font-medium text-gray-500 uppercase mb-1">Alternate Contact</p>
-              <p className="text-gray-800">{farmer?.alternatePhone || 'N/A'}</p>
+              <p className="text-gray-800">{farmer?.secondary_phone || 'N/A'}</p>
             </div>
           </div>
         </div>
@@ -164,17 +141,17 @@ const FarmerDetails = () => {
             <div>
               <p className="text-xs font-medium text-gray-500 uppercase mb-2">Assigned Produce</p>
               <div className="flex flex-wrap gap-2">
-                {farmer?.produce ? farmer.produce.split(', ').map((item, index) => (
+                {Array.isArray(farmer?.product_list) && farmer.product_list.length > 0 ? farmer.product_list.map((item, index) => (
                   <span key={index} className="bg-teal-50 text-teal-700 px-3 py-1 rounded-full text-sm">
-                    {item}
+                    {item.product_name}
                   </span>
                 )) : <span className="text-gray-500">No produce assigned</span>}
               </div>
             </div>
             
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase mb-1">Supply Frequency</p>
-              <p className="text-gray-800">{farmer?.supplyFrequency || 'N/A'}</p>
+              <p className="text-xs font-medium text-gray-500 uppercase mb-1">Contact Person</p>
+              <p className="text-gray-800">{farmer?.contact_person || 'N/A'}</p>
             </div>
           </div>
         </div>
@@ -188,7 +165,7 @@ const FarmerDetails = () => {
           <div className="space-y-4">
             <div>
               <p className="text-xs font-medium text-gray-500 uppercase mb-1">Region</p>
-              <p className="text-gray-800">{farmer?.region || 'N/A'}</p>
+              <p className="text-gray-800">{farmer?.city}, {farmer?.state}</p>
             </div>
             
             <div>

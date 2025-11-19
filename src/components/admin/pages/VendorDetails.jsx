@@ -216,7 +216,7 @@ const SupplierDetails = () => {
         </div>
 
         {/* Business Details */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="bg-teal-50 rounded-lg shadow-sm p-6">
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="w-5 h-5 text-teal-600" />
             <h3 className="text-lg font-semibold text-gray-800">Business Details</h3>
@@ -330,22 +330,22 @@ const SupplierDetails = () => {
 
       {/* Metrics Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow-sm p-6 text-center">
+        <div className="bg-teal-50 rounded-lg shadow-sm p-6 text-center">
           <p className="text-sm text-gray-500 mb-2">Quality Score</p>
           <p className="text-3xl font-bold text-teal-600">{vendor?.qualityScore || '0/10'}</p>
         </div>
         
-        <div className="bg-white rounded-lg shadow-sm p-6 text-center">
+        <div className="bg-teal-50 rounded-lg shadow-sm p-6 text-center">
           <p className="text-sm text-gray-500 mb-2">Response Time</p>
           <p className="text-3xl font-bold text-teal-600">{vendor?.responseTime || 'N/A'}</p>
         </div>
         
-        <div className="bg-white rounded-lg shadow-sm p-6 text-center">
+        <div className="bg-teal-50 rounded-lg shadow-sm p-6 text-center">
           <p className="text-sm text-gray-500 mb-2">Supply Reliability</p>
           <p className="text-3xl font-bold text-teal-600">{vendor?.supplyReliability || '0%'}</p>
         </div>
         
-        <div className="bg-white rounded-lg shadow-sm p-6 text-center">
+        <div className="bg-teal-50 rounded-lg shadow-sm p-6 text-center">
           <p className="text-sm text-gray-500 mb-2">Active Since</p>
           <p className="text-3xl font-bold text-teal-600">{vendor?.activeSince || 'N/A'}</p>
         </div>

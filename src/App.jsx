@@ -28,6 +28,27 @@ import ThirdPartyDetails from './components/admin/pages/ThirdPartyDetails'
 import ThirdPartyIndividualOrderHistory from './components/admin/pages/ThirdPartyIndividualOrderHistory'
 import ThirdPartyPayout from './components/admin/pages/ThirdPartyPayout'
 import DriverManagement from './components/admin/pages/DriverManagement'
+import AddDriver from './components/admin/pages/AddDriver'
+import EditDriver from './components/admin/pages/EditDriver'
+import DriverDetails from './components/admin/pages/DriverDetails'
+import DriverAirportDelivery from './components/admin/pages/DriverAirportDelivery'
+import PayoutManagement from './components/admin/pages/PayoutManagement'
+import PayoutLabour from './components/admin/pages/PayoutLabour'
+import PayoutDriver from './components/admin/pages/PayoutDriver'
+import RolesPermissionSystem from './components/admin/pages/RolesAndPermissionsManagements'
+import LabourManagement from './components/admin/pages/LabourManagement'
+import LabourAdd from './components/admin/pages/LabourAdd'
+import LabourEdit from './components/admin/pages/LabourEdit'
+import LabourDetails from './components/admin/pages/LabourDetails'
+import LabourAttendance from './components/admin/pages/LabourAttendance'
+import LabourWorkAssignment from './components/admin/pages/LabourWorkAssignment'
+import ReportManagement from './components/admin/pages/ReportManagement'
+import ReportFarmer from './components/admin/pages/ReportFarmer'
+import ReportLabour from './components/admin/pages/ReportLabour'
+import ReportInvoice from './components/admin/pages/ReportInvoice'
+import ReportPayout from './components/admin/pages/ReportPayout'
+import ReportOrder from './components/admin/pages/ReportOrder'
+import AddProduct from './components/admin/pages/AddProduct'
 
 const App = () => {
   return (
@@ -60,6 +81,27 @@ const App = () => {
         <Route path="/third-party/:id/orders" element={<Layout><ThirdPartyIndividualOrderHistory /></Layout>} />
         <Route path="/third-party/:id/payout" element={<Layout><ThirdPartyPayout /></Layout>} />
         <Route path="/drivers" element={<Layout><DriverManagement /></Layout>} />
+        <Route path="/drivers/add" element={<Layout><AddDriver /></Layout>} />
+        <Route path="/drivers/:id/edit" element={<Layout><EditDriver /></Layout>} />
+        <Route path="/drivers/:id" element={<Layout><DriverDetails /></Layout>} />
+        <Route path="/drivers/:id/airport" element={<Layout><DriverAirportDelivery /></Layout>} />
+        <Route path="/payouts" element={<Layout><PayoutManagement /></Layout>} />
+        <Route path="/payout-labour" element={<Layout><PayoutLabour /></Layout>} />
+        <Route path="/payout-driver" element={<Layout><PayoutDriver /></Layout>} />
+        <Route path="/roles" element={<Layout><RolesPermissionSystem /></Layout>} />
+        <Route path="/labour" element={<Layout><LabourManagement /></Layout>} />
+        <Route path="/labour/add" element={<Layout><LabourAdd /></Layout>} />
+        <Route path="/labour/:id/edit" element={<Layout><LabourEdit /></Layout>} />
+        <Route path="/labour/:id" element={<Layout><LabourDetails /></Layout>} />
+        <Route path="/labour/attendance" element={<Layout><LabourAttendance /></Layout>} />
+        <Route path="/labour/work-assignment" element={<Layout><LabourWorkAssignment /></Layout>} />
+        <Route path="/reports" element={<Layout><ReportManagement /></Layout>} />
+        <Route path="/reports/farmer" element={<Layout><ReportFarmer /></Layout>} />
+        <Route path="/reports/labour" element={<Layout><ReportLabour /></Layout>} />
+        <Route path="/reports/invoice" element={<Layout><ReportInvoice /></Layout>} />
+        <Route path="/reports/payout" element={<Layout><ReportPayout /></Layout>} />
+        <Route path="/reports/order" element={<Layout><ReportOrder /></Layout>} />
+        <Route path="/products/add" element={<Layout><AddProduct /></Layout>} />
         <Route path="/" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>

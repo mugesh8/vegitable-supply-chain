@@ -1,12 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Plus, MoreVertical } from 'lucide-react';
+import ConfirmDeleteModal from '../../common/ConfirmDeleteModal';
 
 const VendorDashboard = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [openDropdown, setOpenDropdown] = useState(null);
   const dropdownRef = useRef(null);
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, vendorId: null, vendorName: '' });
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -20,13 +22,13 @@ const VendorDashboard = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleAction = (action, vendorId) => {
+  const handleAction = (action, vendorId, vendorName) => {
     if (action === 'view') {
       navigate(`/vendors/${vendorId}`);
     } else if (action === 'edit') {
       navigate(`/vendors/${vendorId}/edit`);
-    } else {
-      console.log(`${action} action for vendor ${vendorId}`);
+    } else if (action === 'delete') {
+      setDeleteModal({ isOpen: true, vendorId, vendorName });
     }
     setOpenDropdown(null);
   };
@@ -289,7 +291,7 @@ const VendorDashboard = () => {
                             Edit
                           </button>
                           <button
-                            onClick={() => handleAction('delete', vendor.id)}
+                            onClick={() => handleAction('delete', vendor.id, vendor.name)}
                             className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-[#F0F4F3] transition-colors"
                           >
                             Delete
@@ -340,6 +342,17 @@ const VendorDashboard = () => {
           </div>
         </div>
       </div>
+
+      <ConfirmDeleteModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, vendorId: null, vendorName: '' })}
+        onConfirm={() => {
+          console.log('Deleting vendor:', deleteModal.vendorId);
+          setDeleteModal({ isOpen: false, vendorId: null, vendorName: '' });
+        }}
+        title="Delete Vendor"
+        message={`Are you sure you want to delete ${deleteModal.vendorName}? This action cannot be undone.`}
+      />
     </div>
   );
 };

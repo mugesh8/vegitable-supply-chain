@@ -10,14 +10,40 @@ import {
   Edit,
   Trash2
 } from 'lucide-react';
+import ConfirmDeleteModal from '../../common/ConfirmDeleteModal';
+import { getAllFarmers } from '../../../api/farmerApi';
 
 const Farmers = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('all'); // all or orderList
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const dropdownRef = useRef(null);
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, farmerId: null, farmerName: '' });
+  const [farmers, setFarmers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const itemsPerPage = 10;
 
-  // Close dropdown when clicking outside
+  useEffect(() => {
+    const fetchFarmers = async () => {
+      try {
+        const response = await getAllFarmers();
+        const allFarmers = response.data || [];
+        setTotalPages(Math.ceil(allFarmers.length / itemsPerPage));
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        setFarmers(allFarmers.slice(startIndex, endIndex));
+      } catch (error) {
+        console.error('Failed to fetch farmers:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFarmers();
+  }, [currentPage]);
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -29,13 +55,26 @@ const Farmers = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleAction = (action, farmerId) => {
+  const toggleDropdown = (farmerId, event) => {
+    if (openDropdown === farmerId) {
+      setOpenDropdown(null);
+    } else {
+      const rect = event.currentTarget.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + window.scrollY + 8,
+        left: rect.right + window.scrollX - 128 // 128px is dropdown width (w-32)
+      });
+      setOpenDropdown(farmerId);
+    }
+  };
+
+  const handleAction = (action, farmerId, farmerName) => {
     if (action === 'view') {
       navigate(`/farmers/${farmerId}`);
     } else if (action === 'edit') {
       navigate(`/farmers/${farmerId}/edit`);
-    } else {
-      console.log(`${action} action for farmer ${farmerId}`);
+    } else if (action === 'delete') {
+      setDeleteModal({ isOpen: true, farmerId, farmerName });
     }
     setOpenDropdown(null);
   };
@@ -45,117 +84,6 @@ const Farmers = () => {
     { label: 'Active Farmers', value: '42', change: '+8%', color: 'bg-gradient-to-r from-[#6EE7B7] to-[#34D399]' },
     { label: 'Pending Payouts', value: '309,847', change: '58 Farmers', color: 'bg-gradient-to-r from-[#10B981] to-[#059669]' },
     { label: 'Total Paid (Month)', value: '156', change: '548 Transactions', color: 'bg-gradient-to-r from-[#047857] to-[#065F46]' }
-  ];
-
-  // Farmers data
-  const farmers = [
-    {
-      id: 1,
-      name: 'Green Fields Farm',
-      farmerId: 'ID: VFN-001',
-      avatar: 'GF',
-      avatarBg: 'bg-green-100',
-      avatarText: 'text-green-700',
-      products: [
-        { name: 'Onions', color: 'bg-yellow-100 text-yellow-700' },
-        { name: 'Cabbage', color: 'bg-purple-100 text-purple-700' }
-      ],
-      contact: '+91 98765 43210',
-      email: 'green@greenfields.in',
-      location: 'Tamil Nadu, India',
-      status: 'Active',
-      statusColor: 'bg-green-100 text-green-700',
-      dues: '₹6,400'
-    },
-    {
-      id: 2,
-      name: 'Fresh Vegetable Supply Co.',
-      farmerId: 'ID: VFN-002',
-      avatar: 'FV',
-      avatarBg: 'bg-purple-100',
-      avatarText: 'text-purple-700',
-      products: [
-        { name: 'Potato', color: 'bg-green-100 text-green-700' },
-        { name: 'Cucumber', color: 'bg-yellow-100 text-yellow-700' }
-      ],
-      contact: '+91 98765 43211',
-      email: 'contact@freshveg.com',
-      location: 'Kerala, India',
-      status: 'Active',
-      statusColor: 'bg-green-100 text-green-700',
-      dues: '₹0'
-    },
-    {
-      id: 3,
-      name: 'Organic Valley Farmers',
-      farmerId: 'ID: VFN-003',
-      avatar: 'OV',
-      avatarBg: 'bg-orange-100',
-      avatarText: 'text-orange-700',
-      products: [
-        { name: 'Chili', color: 'bg-red-100 text-red-700' },
-        { name: 'Broccoli', color: 'bg-green-100 text-green-700' }
-      ],
-      contact: '+91 98765 43212',
-      email: 'info@organicvalley.in',
-      location: 'Karnataka, India',
-      status: 'Active',
-      statusColor: 'bg-green-100 text-green-700',
-      dues: '₹12,300'
-    },
-    {
-      id: 4,
-      name: 'Agri Logistics Partners',
-      farmerId: 'ID: VFN-004',
-      avatar: 'AL',
-      avatarBg: 'bg-cyan-100',
-      avatarText: 'text-cyan-700',
-      products: [
-        { name: 'Potato', color: 'bg-green-100 text-green-700' },
-        { name: 'Onion', color: 'bg-purple-100 text-purple-700' }
-      ],
-      contact: '+91 98765 43213',
-      email: 'orders@agrilogistics.com',
-      location: 'Maharashtra, India',
-      status: 'Active',
-      statusColor: 'bg-green-100 text-green-700',
-      dues: '₹5,600'
-    },
-    {
-      id: 5,
-      name: 'Sunrise Farms',
-      farmerId: 'ID: VFN-005',
-      avatar: 'SF',
-      avatarBg: 'bg-orange-100',
-      avatarText: 'text-orange-700',
-      products: [
-        { name: 'Eggplant', color: 'bg-red-100 text-red-700' }
-      ],
-      contact: '+91 98765 43214',
-      email: 'contact@sunrisefarms.in',
-      location: 'Gujarat, India',
-      status: 'Inactive',
-      statusColor: 'bg-red-100 text-red-700',
-      dues: '₹0'
-    },
-    {
-      id: 6,
-      name: 'Harvest Supply Chain',
-      farmerId: 'ID: VFN-006',
-      avatar: 'HS',
-      avatarBg: 'bg-teal-100',
-      avatarText: 'text-teal-700',
-      products: [
-        { name: 'Corn', color: 'bg-yellow-100 text-yellow-700' },
-        { name: 'Carrot', color: 'bg-green-100 text-green-700' }
-      ],
-      contact: '+91 98765 43215',
-      email: 'supply@harvest.co.in',
-      location: 'Punjab, India',
-      status: 'Active',
-      statusColor: 'bg-green-100 text-green-700',
-      dues: '₹21,500'
-    }
   ];
 
   return (
@@ -205,7 +133,6 @@ const Farmers = () => {
 
       {/* Farmers Table */}
       <div className="bg-white rounded-2xl overflow-hidden border border-[#D0E0DB]">
-
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -220,10 +147,21 @@ const Farmers = () => {
               </tr>
             </thead>
             <tbody>
-
-              {farmers.map((farmer, index) => (
+              {loading ? (
+                <tr>
+                  <td colSpan="7" className="px-6 py-8 text-center text-[#6B8782]">
+                    Loading farmers...
+                  </td>
+                </tr>
+              ) : farmers.length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="px-6 py-8 text-center text-[#6B8782]">
+                    No farmers found
+                  </td>
+                </tr>
+              ) : farmers.map((farmer, index) => (
                 <tr 
-                  key={farmer.id} 
+                  key={farmer.fid} 
                   className={`border-b border-[#D0E0DB] hover:bg-[#F0F4F3] transition-colors ${
                     index % 2 === 0 ? 'bg-white' : 'bg-[#F0F4F3]/30'
                   }`}
@@ -231,84 +169,62 @@ const Farmers = () => {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-[#B8F4D8] flex items-center justify-center text-[#0D5C4D] font-semibold text-sm">
-                        {farmer.avatar}
+                        {farmer.farmer_name?.substring(0, 2).toUpperCase()}
                       </div>
                       <div>
-                        <div className="font-semibold text-[#0D5C4D]">{farmer.name}</div>
-                        <div className="text-xs text-[#6B8782]">{farmer.farmerId}</div>
+                        <div className="font-semibold text-[#0D5C4D]">{farmer.farmer_name}</div>
+                        <div className="text-xs text-[#6B8782]">ID: {farmer.registration_number || 'N/A'}</div>
                       </div>
                     </div>
                   </td>
 
                   <td className="px-6 py-4">
                     <div className="flex flex-wrap gap-1.5">
-                      {farmer.products.map((product, idx) => (
+                      {Array.isArray(farmer.product_list) && farmer.product_list.map((product, idx) => (
                         <span
                           key={idx}
                           className="px-3 py-1.5 rounded-full text-xs font-medium bg-[#D4F4E8] text-[#047857]"
                         >
-                          {product.name}
+                          {product.product_name}
                         </span>
                       ))}
                     </div>
                   </td>
 
                   <td className="px-6 py-4">
-                    <div className="text-sm text-[#0D5C4D]">{farmer.contact}</div>
+                    <div className="text-sm text-[#0D5C4D]">{farmer.phone}</div>
                     <div className="text-xs text-[#6B8782]">{farmer.email}</div>
                   </td>
 
                   <td className="px-6 py-4">
-                    <div className="text-sm text-[#0D5C4D]">{farmer.location}</div>
+                    <div className="text-sm text-[#0D5C4D]">{farmer.city}, {farmer.state}</div>
                   </td>
 
                   <td className="px-6 py-4">
                     <span className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1 w-fit ${
-                      farmer.status === 'Active' ? 'bg-[#4ED39A] text-white' : 'bg-red-500 text-white'
+                      farmer.status === 'active' ? 'bg-[#4ED39A] text-white' : 'bg-red-500 text-white'
                     }`}>
                       <div className="w-2 h-2 rounded-full bg-white"></div>
-                      {farmer.status}
+                      {farmer.status === 'active' ? 'Active' : 'Inactive'}
                     </span>
                   </td>
 
                   <td className="px-6 py-4">
-                    <div className={`text-sm font-semibold ${farmer.dues === '₹0' ? 'text-[#047857]' : 'text-red-600'}`}>
-                      {farmer.dues}
+                    <div className="text-sm font-semibold text-[#047857]">
+                      ₹0
                     </div>
                   </td>
 
                   <td className="px-6 py-4">
-                    <div className="relative" ref={openDropdown === farmer.id ? dropdownRef : null}>
-                      <button 
-                        onClick={() => setOpenDropdown(openDropdown === farmer.id ? null : farmer.id)}
-                        className="text-[#6B8782] hover:text-[#0D5C4D] transition-colors p-1 hover:bg-[#F0F4F3] rounded"
-                      >
-                        <MoreVertical size={20} />
-                      </button>
-                      
-                      {openDropdown === farmer.id && (
-                        <div className="absolute right-0 mt-2 w-32 bg-white rounded-lg shadow-lg border border-[#D0E0DB] py-1 z-10">
-                          <button
-                            onClick={() => handleAction('view', farmer.id)}
-                            className="w-full text-left px-4 py-2 text-sm text-[#0D5C4D] hover:bg-[#F0F4F3] transition-colors"
-                          >
-                            View
-                          </button>
-                          <button
-                            onClick={() => handleAction('edit', farmer.id)}
-                            className="w-full text-left px-4 py-2 text-sm text-[#0D5C4D] hover:bg-[#F0F4F3] transition-colors"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleAction('delete', farmer.id)}
-                            className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-[#F0F4F3] transition-colors"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleDropdown(farmer.fid, e);
+                      }}
+                      className="text-[#6B8782] hover:text-[#0D5C4D] transition-colors p-1 hover:bg-[#F0F4F3] rounded"
+                    >
+                      <MoreVertical size={20} />
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -319,39 +235,80 @@ const Farmers = () => {
         {/* Pagination */}
         <div className="flex items-center justify-between px-6 py-4 bg-[#F0F4F3] border-t border-[#D0E0DB]">
           <div className="text-sm text-[#6B8782]">
-            Showing 6 of 248 farmers
+            Showing page {currentPage} of {totalPages}
           </div>
           <div className="flex items-center gap-2">
-            <button className="px-3 py-2 text-[#6B8782] hover:bg-[#D0E0DB] rounded-lg transition-colors">
+            <button 
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-2 text-[#6B8782] hover:bg-[#D0E0DB] rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
               &lt;
             </button>
-            <button className="px-4 py-2 rounded-lg font-medium transition-colors bg-[#0D8568] text-white">
-              1
-            </button>
-            <button className="px-4 py-2 rounded-lg font-medium transition-colors text-[#6B8782] hover:bg-[#D0E0DB]">
-              2
-            </button>
-            <button className="px-4 py-2 rounded-lg font-medium transition-colors text-[#6B8782] hover:bg-[#D0E0DB]">
-              3
-            </button>
-            <button className="px-4 py-2 rounded-lg font-medium transition-colors text-[#6B8782] hover:bg-[#D0E0DB]">
-              4
-            </button>
-            <button className="px-4 py-2 rounded-lg font-medium transition-colors text-[#6B8782] hover:bg-[#D0E0DB]">
-              5
-            </button>
-            <button className="px-3 py-2 text-[#6B8782] hover:bg-[#D0E0DB] rounded-lg transition-colors">
-              ...
-            </button>
-            <button className="px-4 py-2 rounded-lg font-medium transition-colors text-[#6B8782] hover:bg-[#D0E0DB]">
-              10
-            </button>
-            <button className="px-3 py-2 text-[#6B8782] hover:bg-[#D0E0DB] rounded-lg transition-colors">
+            {[...Array(totalPages)].map((_, i) => (
+              <button 
+                key={i + 1}
+                onClick={() => setCurrentPage(i + 1)}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  currentPage === i + 1 ? 'bg-[#0D8568] text-white' : 'text-[#6B8782] hover:bg-[#D0E0DB]'
+                }`}>
+                {i + 1}
+              </button>
+            ))}
+            <button 
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-2 text-[#6B8782] hover:bg-[#D0E0DB] rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
               &gt;
             </button>
           </div>
         </div>
       </div>
+
+      {/* Dropdown Menu - Fixed Position Outside Table */}
+      {openDropdown && (
+        <div 
+          ref={dropdownRef}
+          className="fixed w-32 bg-white rounded-lg shadow-lg border border-[#D0E0DB] py-1 z-[100]"
+          style={{ 
+            top: `${dropdownPosition.top}px`, 
+            left: `${dropdownPosition.left}px` 
+          }}
+        >
+          <button
+            onClick={() => handleAction('view', openDropdown)}
+            className="w-full text-left px-4 py-2 text-sm text-[#0D5C4D] hover:bg-[#F0F4F3] transition-colors flex items-center gap-2"
+          >
+            <Eye size={14} />
+            View
+          </button>
+          <button
+            onClick={() => handleAction('edit', openDropdown)}
+            className="w-full text-left px-4 py-2 text-sm text-[#0D5C4D] hover:bg-[#F0F4F3] transition-colors flex items-center gap-2"
+          >
+            <Edit size={14} />
+            Edit
+          </button>
+          <button
+            onClick={() => handleAction('delete', openDropdown, 
+              farmers.find(f => f.fid === openDropdown)?.farmer_name)}
+            className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-[#F0F4F3] transition-colors flex items-center gap-2"
+          >
+            <Trash2 size={14} />
+            Delete
+          </button>
+        </div>
+      )}
+
+      <ConfirmDeleteModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, farmerId: null, farmerName: '' })}
+        onConfirm={() => {
+          console.log('Deleting farmer:', deleteModal.farmerId);
+          setDeleteModal({ isOpen: false, farmerId: null, farmerName: '' });
+        }}
+        title="Delete Farmer"
+        message={`Are you sure you want to delete ${deleteModal.farmerName}? This action cannot be undone.`}
+      />
     </div>
   );
 };

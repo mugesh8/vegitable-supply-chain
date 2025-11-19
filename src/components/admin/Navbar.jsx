@@ -7,6 +7,7 @@ const Navbar = ({ onMenuClick }) => {
   const location = useLocation();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const getPageTitle = () => {
     const path = location.pathname;
@@ -20,6 +21,10 @@ const Navbar = ({ onMenuClick }) => {
     if (path.match(/^\/farmers\/\d+\/edit$/)) return 'Edit Farmer';
     if (path === '/notifications') return 'Notifications';
     if (path === '/drivers') return 'Driver Management';
+    if (path === '/drivers/add') return 'Add Driver';
+    if (path.match(/^\/drivers\/[^/]+\/edit$/)) return 'Edit Driver';
+    if (path.match(/^\/drivers\/[^/]+$/)) return 'Driver Details';
+    if (path.match(/^\/drivers\/[^/]+\/airport$/)) return 'Driver Airport Delivery';
     if (path === '/suppliers') return 'Supplier Management';
     if (path === '/suppliers/add') return 'Add Supplier';
     if (path.match(/^\/suppliers\/[^/]+\/edit$/)) return 'Edit Supplier';
@@ -33,6 +38,23 @@ const Navbar = ({ onMenuClick }) => {
     if (path.match(/^\/third-party\/\d+\/payout$/)) return 'Third Party Payout';
     if (path.match(/^\/third-party\/[^/]+$/)) return 'Third Party Details';
     if (path === '/orders') return 'Orders';
+    if (path === '/payouts') return 'Payout Management';
+    if (path === '/payout-labour') return 'Labour Payout';
+    if (path === '/payout-driver') return 'Driver Payout';
+    if (path === '/roles') return 'Roles & Permissions';
+    if (path === '/labour') return 'Labour Management';
+    if (path === '/labour/add') return 'Add Labour';
+    if (path.match(/^\/labour\/[^/]+\/edit$/)) return 'Edit Labour';
+    if (path.match(/^\/labour\/[^/]+$/)) return 'Labour Details';
+    if (path === '/labour/attendance') return 'Labour Attendance';
+    if (path === '/labour/work-assignment') return 'Work Assignment';
+    if (path === '/reports') return 'Report Management';
+    if (path === '/reports/farmer') return 'Farmer Report';
+    if (path === '/reports/labour') return 'Labour Report';
+    if (path === '/reports/invoice') return 'Invoice Report';
+    if (path === '/reports/payout') return 'Payout Report';
+    if (path === '/reports/order') return 'Order Report';
+    if (path === '/products/add') return 'Add Product';
     if (path.match(/^\/farmers\/\d+\/orders$/)) return 'Order History';
     if (path.match(/^\/farmers\/\d+\/payout$/)) return 'Farmer Payout';
     if (path.match(/^\/farmers\/\d+$/)) return 'Farmer Details';
@@ -123,7 +145,7 @@ const Navbar = ({ onMenuClick }) => {
 
             {/* Notification Dropdown */}
             {showNotifications && (
-              <div className="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-lg border border-gray-200 z-50">
+              <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-xl shadow-lg border border-gray-200 z-50">
                 <div className="p-4 border-b border-gray-200">
                   <h3 className="font-semibold text-gray-800">Notifications</h3>
                   <p className="text-xs text-gray-500 mt-1">{unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}</p>
@@ -204,7 +226,13 @@ const Navbar = ({ onMenuClick }) => {
                   <User className="w-4 h-4" />
                   <span className="text-sm">Profile</span>
                 </button>
-                <button className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center gap-3 text-red-600 border-t border-gray-100">
+                <button 
+                  onClick={() => {
+                    setShowLogoutModal(true);
+                    setShowProfile(false);
+                  }}
+                  className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center gap-3 text-red-600 border-t border-gray-100"
+                >
                   <LogOut className="w-4 h-4" />
                   <span className="text-sm">Logout</span>
                 </button>
@@ -213,6 +241,33 @@ const Navbar = ({ onMenuClick }) => {
           </div>
         </div>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 max-w-sm w-full mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Confirm Logout</h3>
+            <p className="text-gray-600 text-sm mb-6">Are you sure you want to logout?</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowLogoutModal(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  localStorage.clear();
+                  navigate('/login');
+                }}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
