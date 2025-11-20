@@ -105,7 +105,7 @@ const AddFarmer = () => {
     e.preventDefault();
     
     // Check if user is authenticated
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('authToken');
     if (!token) {
       setError('Please login to continue.');
       setTimeout(() => navigate('/login'), 1500);
