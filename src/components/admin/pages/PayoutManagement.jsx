@@ -9,10 +9,10 @@ const PayoutManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
   const stats = [
-    { label: 'Total Payouts', value: '86', change: '+12%' },
-    { label: 'Pending Payouts', value: '72', change: '+8%' },
-    { label: 'Paid This Month', value: '₹12.4 L', change: '24 Farmers' },
-    { label: 'Average Payout', value: '₹2.8 L', change: '156 Transactions' }
+    { label: 'Total Payouts', value: '86' },
+    { label: 'Pending Payouts', value: '72' },
+    { label: 'Paid This Month', value: '₹12.4 L' },
+    { label: 'Average Payout', value: '₹2.8 L' }
   ];
 
   const payouts = [
@@ -118,14 +118,7 @@ const PayoutManagement = () => {
               }`}
             >
               <div className="text-sm font-medium mb-2 opacity-90">{stat.label}</div>
-              <div className="text-4xl font-bold mb-2">{stat.value}</div>
-              <div className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
-                index === 2 || index === 3 
-                  ? 'bg-white/20 text-white' 
-                  : 'bg-white/60 text-[#0D5C4D]'
-              }`}>
-                {stat.change}
-              </div>
+              <div className="text-4xl font-bold">{stat.value}</div>
             </div>
           ))}
         </div>

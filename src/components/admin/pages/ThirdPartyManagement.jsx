@@ -32,10 +32,10 @@ const ThirdPartyManagement = () => {
   };
 
   const stats = [
-    { label: 'Total Third Party', value: '86', change: '+12%', color: 'bg-gradient-to-r from-[#D1FAE5] to-[#A7F3D0]' },
-    { label: 'Active Third Party', value: '72', change: '+8%', color: 'bg-gradient-to-r from-[#6EE7B7] to-[#34D399]' },
-    { label: 'Pending Payouts', value: '₹12.4 L', change: '24 Third Party', color: 'bg-gradient-to-r from-[#10B981] to-[#059669]' },
-    { label: 'Total Paid (Month)', value: '₹2.8 L', change: '156 Transactions', color: 'bg-gradient-to-r from-[#047857] to-[#065F46]' }
+    { label: 'Total Third Party', value: '86', color: 'bg-gradient-to-r from-[#D1FAE5] to-[#A7F3D0]' },
+    { label: 'Active Third Party', value: '72', color: 'bg-gradient-to-r from-[#6EE7B7] to-[#34D399]' },
+    { label: 'Pending Payouts', value: '₹12.4 L', color: 'bg-gradient-to-r from-[#10B981] to-[#059669]' },
+    { label: 'Total Paid (Month)', value: '₹2.8 L', color: 'bg-gradient-to-r from-[#047857] to-[#065F46]' }
   ];
 
   const thirdParties = [
@@ -149,10 +149,7 @@ const ThirdPartyManagement = () => {
             className={`${stat.color} rounded-2xl p-6 ${index === 2 || index === 3 ? 'text-white' : 'text-[#0D5C4D]'}`}
           >
             <div className="text-sm font-medium mb-2 opacity-90">{stat.label}</div>
-            <div className="text-4xl font-bold mb-2">{stat.value}</div>
-            <div className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${index === 2 || index === 3 ? 'bg-white/20 text-white' : 'bg-white/60 text-[#0D5C4D]'}`}>
-              {stat.change}
-            </div>
+            <div className="text-4xl font-bold">{stat.value}</div>
           </div>
         ))}
       </div>

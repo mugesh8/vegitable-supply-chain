@@ -1,51 +1,61 @@
 import React, { useState, useEffect } from 'react';
 import { Phone, Mail, MapPin, TrendingUp, Package, ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { getSupplierById } from '../../../api/supplierApi';
+import { getAllProducts } from '../../../api/productApi';
 
 const SupplierDetails = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [supplier, setSupplier] = useState(null);
+  const [products, setProducts] = useState([]);
 
   const handleBackClick = () => {
     navigate('/suppliers');
   };
 
-  const supplierData = {
-    '1': {
-      id: 'VER-001',
-      name: 'Green Fields Farm',
-      type: 'Supplier',
-      phone: '+91 98765 43210',
-      email: 'contact@greenfields.com',
-      alternatePhone: '+91 98765 43211',
-      products: 'Carrot, Cabbage',
-      supplyFrequency: 'Weekly - Every Monday & Thursday',
-      region: 'Tamil Nadu, India',
-      address: '123 Farm Road, Coimbatore District, Tamil Nadu - 641001, India',
-      status: 'Active',
-      rating: '4.8',
-      ratingText: 'Excellent Rating',
-      reviewCount: '189',
-      totalOrders: '247',
-      onTimeDelivery: '95%',
-      revenue: '₹12.4 Lakhs',
-      qualityScore: '9.5/10',
-      responseTime: '2.5 hrs',
-      supplyReliability: '98%',
-      activeSince: '10 Months'
-    }
-  };
-
   useEffect(() => {
-    const fetchSupplier = () => {
-      const supplierInfo = supplierData[id];
-      if (supplierInfo) {
-        setSupplier(supplierInfo);
+    const fetchData = async () => {
+      try {
+        const [supplierResponse, productsResponse] = await Promise.all([
+          getSupplierById(id),
+          getAllProducts(1, 100)
+        ]);
+        
+        const supplierData = supplierResponse.data;
+        const allProducts = productsResponse.data || [];
+        
+        let productIds = [];
+        if (typeof supplierData.product_list === 'string') {
+          try {
+            productIds = JSON.parse(supplierData.product_list);
+          } catch (e) {
+            productIds = [];
+          }
+        } else if (Array.isArray(supplierData.product_list)) {
+          productIds = supplierData.product_list;
+        }
+        
+        const productMap = {};
+        allProducts.forEach(p => {
+          productMap[p.pid] = p.product_name;
+        });
+        
+        const productList = productIds.map(id => ({
+          product_id: id,
+          product_name: productMap[id] || `Product ${id}`
+        }));
+        
+        console.log('Supplier data from API:', supplierData);
+        console.log('Profile image:', supplierData.profile_image);
+        setSupplier({ ...supplierData, product_list: productList });
+        setProducts(allProducts);
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
       }
     };
 
-    fetchSupplier();
+    fetchData();
   }, [id]);
 
   if (!supplier) {
@@ -94,13 +104,26 @@ const SupplierDetails = () => {
 
       <div className="rounded-lg shadow-sm p-6 mb-6">
         <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-          <div className="w-24 h-24 bg-teal-800 rounded-full flex items-center justify-center flex-shrink-0">
-            <span className="text-white text-3xl font-bold">{supplier?.name?.substring(0, 2).toUpperCase() || 'SP'}</span>
+          <div className="w-24 h-24 bg-teal-800 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+            {supplier?.profile_image ? (
+              <img 
+                src={`http://localhost:8000${supplier.profile_image}`}
+                alt={supplier?.supplier_name || 'Supplier'}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  console.log('Image failed to load:', e.target.src);
+                  e.target.style.display = 'none';
+                }}
+              />
+            ) : null}
+            {!supplier?.profile_image && (
+              <span className="text-white text-3xl font-bold">{supplier?.supplier_name?.substring(0, 2).toUpperCase() || 'SP'}</span>
+            )}
           </div>
           
           <div className="flex-1">
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">{supplier?.name || 'N/A'}</h2>
-            <p className="text-gray-600 mb-2">Supplier ID: {supplier?.id || 'N/A'}</p>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">{supplier?.supplier_name || 'N/A'}</h2>
+            <p className="text-gray-600 mb-2">Supplier ID: {supplier?.registration_number || 'N/A'}</p>
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <span className="flex items-center gap-1">
                 <span className="text-red-500">🛒</span>
@@ -116,14 +139,14 @@ const SupplierDetails = () => {
               {supplier?.type || 'Supplier'}
             </span>
             <span className={`px-4 py-1 rounded-full text-sm font-medium border flex items-center gap-2 ${
-              supplier?.status === 'Active' 
+              supplier?.status === 'active' 
                 ? 'bg-green-50 text-green-700 border-green-200' 
                 : 'bg-red-50 text-red-700 border-red-200'
             }`}>
               <span className={`w-2 h-2 rounded-full ${
-                supplier?.status === 'Active' ? 'bg-green-500' : 'bg-red-500'
+                supplier?.status === 'active' ? 'bg-green-500' : 'bg-red-500'
               }`}></span>
-              {supplier?.status || 'Unknown'}
+              {supplier?.status === 'active' ? 'Active' : 'Inactive'}
             </span>
           </div>
         </div>
@@ -149,7 +172,7 @@ const SupplierDetails = () => {
             
             <div>
               <p className="text-xs font-medium text-gray-500 uppercase mb-1">Alternate Contact</p>
-              <p className="text-gray-800">{supplier?.alternatePhone || 'N/A'}</p>
+              <p className="text-gray-800">{supplier?.secondary_phone || 'N/A'}</p>
             </div>
           </div>
         </div>
@@ -164,17 +187,17 @@ const SupplierDetails = () => {
             <div>
               <p className="text-xs font-medium text-gray-500 uppercase mb-2">Products Supplied</p>
               <div className="flex flex-wrap gap-2">
-                {supplier?.products ? supplier.products.split(', ').map((item, index) => (
+                {Array.isArray(supplier?.product_list) && supplier.product_list.length > 0 ? supplier.product_list.map((item, index) => (
                   <span key={index} className="bg-teal-50 text-teal-700 px-3 py-1 rounded-full text-sm">
-                    {item}
+                    {item.product_name}
                   </span>
                 )) : <span className="text-gray-500">No products assigned</span>}
               </div>
             </div>
             
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase mb-1">Supply Frequency</p>
-              <p className="text-gray-800">{supplier?.supplyFrequency || 'N/A'}</p>
+              <p className="text-xs font-medium text-gray-500 uppercase mb-1">Contact Person</p>
+              <p className="text-gray-800">{supplier?.contact_person || 'N/A'}</p>
             </div>
           </div>
         </div>
@@ -188,7 +211,7 @@ const SupplierDetails = () => {
           <div className="space-y-4">
             <div>
               <p className="text-xs font-medium text-gray-500 uppercase mb-1">Region</p>
-              <p className="text-gray-800">{supplier?.region || 'N/A'}</p>
+              <p className="text-gray-800">{supplier?.city}, {supplier?.state}</p>
             </div>
             
             <div>

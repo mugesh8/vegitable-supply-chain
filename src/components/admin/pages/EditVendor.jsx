@@ -5,6 +5,17 @@ import { useNavigate, useParams } from 'react-router-dom';
 const EditVendorDetails = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [profileImage, setProfileImage] = useState(null);
+  const [profileImagePreview, setProfileImagePreview] = useState(null);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setProfileImage(file);
+      setProfileImagePreview(URL.createObjectURL(file));
+    }
+  };
+
   const [formData, setFormData] = useState({
     vendorName: '',
     vendorType: 'farmer',

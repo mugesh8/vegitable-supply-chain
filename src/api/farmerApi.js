@@ -33,7 +33,7 @@ export const getFarmerById = async (id) => {
 // Update farmer
 export const updateFarmer = async (id, farmerData) => {
   try {
-    const response = await api.put(`/farmers/${id}`, farmerData);
+    const response = await api.put(`/farmer/${id}`, farmerData);
     return response.data;
   } catch (error) {
     throw error.response?.data || error.message;
@@ -43,7 +43,7 @@ export const updateFarmer = async (id, farmerData) => {
 // Delete farmer
 export const deleteFarmer = async (id) => {
   try {
-    const response = await api.delete(`/farmers/${id}`);
+    const response = await api.delete(`/farmer/${id}`);
     return response.data;
   } catch (error) {
     throw error.response?.data || error.message;

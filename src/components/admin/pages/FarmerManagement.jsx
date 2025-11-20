@@ -11,7 +11,8 @@ import {
   Trash2
 } from 'lucide-react';
 import ConfirmDeleteModal from '../../common/ConfirmDeleteModal';
-import { getAllFarmers } from '../../../api/farmerApi';
+import { getAllFarmers, deleteFarmer } from '../../../api/farmerApi';
+import { getAllProducts } from '../../../api/productApi';
 
 const Farmers = () => {
   const navigate = useNavigate();
@@ -21,28 +22,83 @@ const Farmers = () => {
   const dropdownRef = useRef(null);
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, farmerId: null, farmerName: '' });
   const [farmers, setFarmers] = useState([]);
+  const [allFarmers, setAllFarmers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortOrder, setSortOrder] = useState('recent');
   const itemsPerPage = 10;
 
   useEffect(() => {
-    const fetchFarmers = async () => {
+    const fetchData = async () => {
       try {
-        const response = await getAllFarmers();
-        const allFarmers = response.data || [];
-        setTotalPages(Math.ceil(allFarmers.length / itemsPerPage));
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = startIndex + itemsPerPage;
-        setFarmers(allFarmers.slice(startIndex, endIndex));
+        const [farmersResponse, productsResponse] = await Promise.all([
+          getAllFarmers(),
+          getAllProducts(1, 100)
+        ]);
+        
+        const products = productsResponse.data || [];
+        const productMap = {};
+        products.forEach(p => {
+          productMap[p.pid] = p.product_name;
+        });
+        
+        const farmersData = (farmersResponse.data || []).map(farmer => {
+          let productIds = [];
+          if (typeof farmer.product_list === 'string') {
+            try {
+              productIds = JSON.parse(farmer.product_list);
+            } catch (e) {
+              productIds = [];
+            }
+          } else if (Array.isArray(farmer.product_list)) {
+            productIds = farmer.product_list;
+          }
+          
+          return {
+            ...farmer,
+            product_list: productIds.map(id => ({
+              product_id: id,
+              product_name: productMap[id] || `Product ${id}`
+            }))
+          };
+        });
+        
+        setAllFarmers(farmersData);
       } catch (error) {
-        console.error('Failed to fetch farmers:', error);
+        console.error('Failed to fetch data:', error);
       } finally {
         setLoading(false);
       }
     };
-    fetchFarmers();
-  }, [currentPage]);
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    let filtered = [...allFarmers];
+
+    if (searchQuery) {
+      filtered = filtered.filter(farmer => 
+        farmer.farmer_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        farmer.phone?.includes(searchQuery) ||
+        farmer.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        farmer.city?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        farmer.state?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    if (sortOrder === 'early') {
+      filtered.sort((a, b) => a.fid - b.fid);
+    } else {
+      filtered.sort((a, b) => b.fid - a.fid);
+    }
+
+    setTotalPages(Math.ceil(filtered.length / itemsPerPage));
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    setFarmers(filtered.slice(startIndex, endIndex));
+  }, [allFarmers, searchQuery, sortOrder, currentPage]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -80,10 +136,10 @@ const Farmers = () => {
   };
 
   const stats = [
-    { label: 'Total Farmers', value: '248', change: '+12%', color: 'bg-gradient-to-r from-[#D1FAE5] to-[#A7F3D0]' },
-    { label: 'Active Farmers', value: '42', change: '+8%', color: 'bg-gradient-to-r from-[#6EE7B7] to-[#34D399]' },
-    { label: 'Pending Payouts', value: '309,847', change: '58 Farmers', color: 'bg-gradient-to-r from-[#10B981] to-[#059669]' },
-    { label: 'Total Paid (Month)', value: '156', change: '548 Transactions', color: 'bg-gradient-to-r from-[#047857] to-[#065F46]' }
+    { label: 'Total Farmers', value: '248', color: 'bg-gradient-to-r from-[#D1FAE5] to-[#A7F3D0]' },
+    { label: 'Active Farmers', value: '42', color: 'bg-gradient-to-r from-[#6EE7B7] to-[#34D399]' },
+    { label: 'Pending Payouts', value: '309,847', color: 'bg-gradient-to-r from-[#10B981] to-[#059669]' },
+    { label: 'Total Paid (Month)', value: '156', color: 'bg-gradient-to-r from-[#047857] to-[#065F46]' }
   ];
 
   return (
@@ -109,26 +165,31 @@ const Farmers = () => {
             }`}
           >
             <div className="text-sm font-medium mb-2 opacity-90">{stat.label}</div>
-            <div className="text-4xl font-bold mb-2">{stat.value}</div>
-            <div className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
-              index === 2 || index === 3 
-                ? 'bg-white/20 text-white' 
-                : 'bg-white/60 text-[#0D5C4D]'
-            }`}>
-              {stat.change}
-            </div>
+            <div className="text-4xl font-bold">{stat.value}</div>
           </div>
         ))}
       </div>
 
-      {/* Search Bar */}
-      <div className="relative mb-6">
-        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#6B8782]" size={20} />
-        <input
-          type="text"
-          placeholder="Search farmers by name, contact, or location..."
-          className="w-full pl-12 pr-4 py-3 bg-[#F0F4F3] border-none rounded-xl text-[#0D5C4D] placeholder-[#6B8782] focus:outline-none focus:ring-2 focus:ring-[#0D8568]"
-        />
+      {/* Search Bar and Filter */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="relative flex-1">
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#6B8782]" size={20} />
+          <input
+            type="text"
+            placeholder="Search farmers by name, contact, or location..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-12 pr-4 py-3 bg-[#F0F4F3] border-none rounded-xl text-[#0D5C4D] placeholder-[#6B8782] focus:outline-none focus:ring-2 focus:ring-[#0D8568]"
+          />
+        </div>
+        <select
+          value={sortOrder}
+          onChange={(e) => setSortOrder(e.target.value)}
+          className="px-4 py-3 bg-[#F0F4F3] border-none rounded-xl text-[#0D5C4D] focus:outline-none focus:ring-2 focus:ring-[#0D8568] cursor-pointer"
+        >
+          <option value="recent">Recently Added</option>
+          <option value="early">Early Added</option>
+        </select>
       </div>
 
       {/* Farmers Table */}
@@ -180,14 +241,23 @@ const Farmers = () => {
 
                   <td className="px-6 py-4">
                     <div className="flex flex-wrap gap-1.5">
-                      {Array.isArray(farmer.product_list) && farmer.product_list.map((product, idx) => (
-                        <span
-                          key={idx}
-                          className="px-3 py-1.5 rounded-full text-xs font-medium bg-[#D4F4E8] text-[#047857]"
-                        >
-                          {product.product_name}
-                        </span>
-                      ))}
+                      {Array.isArray(farmer.product_list) && farmer.product_list.length > 0 ? (
+                        <>
+                          {farmer.product_list.slice(0, 2).map((product, idx) => (
+                            <span
+                              key={idx}
+                              className="px-3 py-1.5 rounded-full text-xs font-medium bg-[#D4F4E8] text-[#047857]"
+                            >
+                              {product.product_name}
+                            </span>
+                          ))}
+                          {farmer.product_list.length > 2 && (
+                            <span className="px-3 py-1.5 rounded-full text-xs font-medium bg-[#0D7C66] text-white">
+                              +{farmer.product_list.length - 2}
+                            </span>
+                          )}
+                        </>
+                      ) : <span className="text-xs text-[#6B8782]">No products</span>}
                     </div>
                   </td>
 
@@ -302,9 +372,15 @@ const Farmers = () => {
       <ConfirmDeleteModal
         isOpen={deleteModal.isOpen}
         onClose={() => setDeleteModal({ isOpen: false, farmerId: null, farmerName: '' })}
-        onConfirm={() => {
-          console.log('Deleting farmer:', deleteModal.farmerId);
-          setDeleteModal({ isOpen: false, farmerId: null, farmerName: '' });
+        onConfirm={async () => {
+          try {
+            await deleteFarmer(deleteModal.farmerId);
+            const response = await getAllFarmers();
+            setAllFarmers(response.data || []);
+            setDeleteModal({ isOpen: false, farmerId: null, farmerName: '' });
+          } catch (error) {
+            console.error('Failed to delete farmer:', error);
+          }
         }}
         title="Delete Farmer"
         message={`Are you sure you want to delete ${deleteModal.farmerName}? This action cannot be undone.`}

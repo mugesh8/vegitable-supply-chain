@@ -7,38 +7,26 @@ const Dashboard = () => {
     {
       title: 'Total Farmers',
       value: '248',
-      trend: '+12%',
       bgColor: 'bg-gradient-to-r from-[#D1FAE5] to-[#A7F3D0]',
-      textColor: 'text-[#0D5C4D]',
-      trendBg: 'bg-white/60',
-      trendText: 'text-[#0D5C4D]'
+      textColor: 'text-[#0D5C4D]'
     },
     {
       title: 'Active Drivers',
       value: '42',
-      trend: '+8%',
       bgColor: 'bg-gradient-to-r from-[#6EE7B7] to-[#34D399]',
-      textColor: 'text-[#0D5C4D]',
-      trendBg: 'bg-white/60',
-      trendText: 'text-[#0D5C4D]'
+      textColor: 'text-[#0D5C4D]'
     },
     {
       title: 'Total Orders',
       value: '1,847',
-      trend: '+24%',
       bgColor: 'bg-gradient-to-r from-[#10B981] to-[#059669]',
-      textColor: 'text-white',
-      trendBg: 'bg-white/20',
-      trendText: 'text-white'
+      textColor: 'text-white'
     },
     {
       title: 'Total Labours',
       value: '156',
-      trend: '+5%',
       bgColor: 'bg-gradient-to-r from-[#047857] to-[#065F46]',
-      textColor: 'text-white',
-      trendBg: 'bg-white/20',
-      trendText: 'text-white'
+      textColor: 'text-white'
     }
   ];
 
@@ -94,11 +82,8 @@ const Dashboard = () => {
             <div className={`text-sm font-medium mb-2 opacity-90 ${stat.textColor}`}>
               {stat.title}
             </div>
-            <div className={`text-4xl font-bold mb-2 ${stat.textColor}`}>
+            <div className={`text-4xl font-bold ${stat.textColor}`}>
               {stat.value}
-            </div>
-            <div className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${stat.trendBg} ${stat.trendText}`}>
-              {stat.trend}
             </div>
           </div>
         ))}

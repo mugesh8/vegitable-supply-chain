@@ -34,10 +34,10 @@ const VendorDashboard = () => {
   };
 
   const stats = [
-    { label: 'Total Vendors', value: '248', change: '+12%', color: 'bg-gradient-to-r from-[#D1FAE5] to-[#A7F3D0]' },
-    { label: 'Farmers', value: '42', change: '+8%', color: 'bg-gradient-to-r from-[#6EE7B7] to-[#34D399]' },
-    { label: 'Suppliers', value: '1,847', change: '+24%', color: 'bg-gradient-to-r from-[#10B981] to-[#059669]' },
-    { label: 'Third Party', value: '156', change: '+5%', color: 'bg-gradient-to-r from-[#047857] to-[#065F46]' }
+    { label: 'Total Vendors', value: '248', color: 'bg-gradient-to-r from-[#D1FAE5] to-[#A7F3D0]' },
+    { label: 'Farmers', value: '42', color: 'bg-gradient-to-r from-[#6EE7B7] to-[#34D399]' },
+    { label: 'Suppliers', value: '1,847', color: 'bg-gradient-to-r from-[#10B981] to-[#059669]' },
+    { label: 'Third Party', value: '156', color: 'bg-gradient-to-r from-[#047857] to-[#065F46]' }
   ];
 
   const vendors = [
@@ -160,14 +160,7 @@ const VendorDashboard = () => {
             }`}
           >
             <div className="text-sm font-medium mb-2 opacity-90">{stat.label}</div>
-            <div className="text-4xl font-bold mb-2">{stat.value}</div>
-            <div className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
-              index === 2 || index === 3 
-                ? 'bg-white/20 text-white' 
-                : 'bg-white/60 text-[#0D5C4D]'
-            }`}>
-              {stat.change}
-            </div>
+            <div className="text-4xl font-bold">{stat.value}</div>
           </div>
         ))}
       </div>

@@ -2,27 +2,58 @@ import React, { useState, useEffect } from 'react';
 import { Phone, Mail, MapPin, TrendingUp, Package, ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getFarmerById } from '../../../api/farmerApi';
+import { getAllProducts } from '../../../api/productApi';
 
 const FarmerDetails = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [farmer, setFarmer] = useState(null);
+  const [products, setProducts] = useState([]);
 
   const handleBackClick = () => {
     navigate('/farmers');
   };
 
   useEffect(() => {
-    const fetchFarmer = async () => {
+    const fetchData = async () => {
       try {
-        const response = await getFarmerById(id);
-        setFarmer(response.data);
+        const [farmerResponse, productsResponse] = await Promise.all([
+          getFarmerById(id),
+          getAllProducts(1, 100)
+        ]);
+        
+        const farmerData = farmerResponse.data;
+        const allProducts = productsResponse.data || [];
+        
+        let productIds = [];
+        if (typeof farmerData.product_list === 'string') {
+          try {
+            productIds = JSON.parse(farmerData.product_list);
+          } catch (e) {
+            productIds = [];
+          }
+        } else if (Array.isArray(farmerData.product_list)) {
+          productIds = farmerData.product_list;
+        }
+        
+        const productMap = {};
+        allProducts.forEach(p => {
+          productMap[p.pid] = p.product_name;
+        });
+        
+        const productList = productIds.map(id => ({
+          product_id: id,
+          product_name: productMap[id] || `Product ${id}`
+        }));
+        
+        setFarmer({ ...farmerData, product_list: productList });
+        setProducts(allProducts);
       } catch (error) {
-        console.error('Failed to fetch farmer:', error);
+        console.error('Failed to fetch data:', error);
       }
     };
 
-    fetchFarmer();
+    fetchData();
   }, [id]);
 
   if (!farmer) {
@@ -70,11 +101,7 @@ const FarmerDetails = () => {
       </div>
 
       <div className="rounded-lg shadow-sm p-6 mb-6">
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-          <div className="w-24 h-24 bg-teal-800 rounded-full flex items-center justify-center flex-shrink-0">
-            <span className="text-white text-3xl font-bold">{farmer?.farmer_name?.substring(0, 2).toUpperCase() || 'FN'}</span>
-          </div>
-          
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-6">         
           <div className="flex-1">
             <h2 className="text-2xl font-bold text-gray-800 mb-2">{farmer?.farmer_name || 'N/A'}</h2>
             <p className="text-gray-600 mb-2">Farmer ID: {farmer?.registration_number || 'N/A'}</p>
@@ -139,13 +166,13 @@ const FarmerDetails = () => {
           
           <div className="space-y-4">
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase mb-2">Assigned Produce</p>
+              <p className="text-xs font-medium text-gray-500 uppercase mb-2">Assigned Products</p>
               <div className="flex flex-wrap gap-2">
                 {Array.isArray(farmer?.product_list) && farmer.product_list.length > 0 ? farmer.product_list.map((item, index) => (
                   <span key={index} className="bg-teal-50 text-teal-700 px-3 py-1 rounded-full text-sm">
                     {item.product_name}
                   </span>
-                )) : <span className="text-gray-500">No produce assigned</span>}
+                )) : <span className="text-gray-500">No products assigned</span>}
               </div>
             </div>
             

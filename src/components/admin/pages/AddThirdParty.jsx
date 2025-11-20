@@ -29,6 +29,16 @@ const AddThirdParty = () => {
     { name: 'Onion', color: 'bg-green-100 text-green-700' },
     { name: 'Potato', color: 'bg-yellow-100 text-yellow-700' }
   ]);
+  const [profileImage, setProfileImage] = useState(null);
+  const [profileImagePreview, setProfileImagePreview] = useState(null);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setProfileImage(file);
+      setProfileImagePreview(URL.createObjectURL(file));
+    }
+  };
 
   const availableVegetables = [
     'Tomato', 'Onion', 'Potato', 'Cabbage', 'Carrot', 'Broccoli', 
@@ -89,6 +99,28 @@ const AddThirdParty = () => {
           {/* Personal Information */}
           <div>
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Personal Information</h3>
+            
+            {/* Profile Image Upload */}
+            <div className="mb-6 flex items-center gap-6">
+              <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
+                {profileImagePreview ? (
+                  <img src={profileImagePreview} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-gray-400 text-3xl">👤</span>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Profile Image</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#0D7C66] file:text-white hover:file:bg-[#0a6354] file:cursor-pointer"
+                />
+                <p className="text-xs text-gray-500 mt-1">JPG, PNG or GIF. Max 2MB.</p>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Third Party Name */}
               <div>

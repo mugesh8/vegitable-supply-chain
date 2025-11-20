@@ -198,7 +198,7 @@ const LabourManagement = () => {
             className={`${stat.color} rounded-2xl p-6 ${stat.textColor}`}
           >
             <div className="text-sm font-medium mb-2 opacity-90">{stat.label}</div>
-            <div className="text-3xl sm:text-4xl font-bold">{stat.value}</div>
+            <div className="text-4xl font-bold">{stat.value}</div>
           </div>
         ))}
       </div>

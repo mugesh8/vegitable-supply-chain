@@ -28,8 +28,9 @@ const AddFarmer = () => {
   });
 
   const [selectedVegetables, setSelectedVegetables] = useState([]);
-
   const [availableVegetables, setAvailableVegetables] = useState([]);
+  const [profileImage, setProfileImage] = useState(null);
+  const [profileImagePreview, setProfileImagePreview] = useState(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -88,6 +89,14 @@ const AddFarmer = () => {
     setSelectedVegetables(prev => prev.filter((_, i) => i !== index));
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setProfileImage(file);
+      setProfileImagePreview(URL.createObjectURL(file));
+    }
+  };
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
@@ -108,28 +117,30 @@ const AddFarmer = () => {
     setSuccess(false);
 
     try {
-      const farmerPayload = {
-        farmer_name: formData.farmer_name,
-        registration_number: formData.registration_number,
-        phone: formData.primary_phone,
-        secondary_phone: formData.secondary_phone,
-        email: formData.email,
-        address: formData.address,
-        city: formData.city,
-        state: formData.state,
-        pin_code: formData.pin_code,
-        contact_person: formData.contact_person,
-        tape_color: formData.tape_color,
-        dealing_person: formData.dialing_person,
-        product_list: selectedVegetables,
-        status: formData.status,
-        account_holder_name: formData.account_holder_name,
-        bank_name: formData.bank_name,
-        account_number: formData.account_number,
-        IFSC_code: formData.IFSC_code
-      };
+      const formDataToSend = new FormData();
+      formDataToSend.append('farmer_name', formData.farmer_name);
+      formDataToSend.append('registration_number', formData.registration_number);
+      formDataToSend.append('phone', formData.primary_phone);
+      formDataToSend.append('secondary_phone', formData.secondary_phone);
+      formDataToSend.append('email', formData.email);
+      formDataToSend.append('address', formData.address);
+      formDataToSend.append('city', formData.city);
+      formDataToSend.append('state', formData.state);
+      formDataToSend.append('pin_code', formData.pin_code);
+      formDataToSend.append('contact_person', formData.contact_person);
+      formDataToSend.append('tape_color', formData.tape_color);
+      formDataToSend.append('dealing_person', formData.dialing_person);
+      formDataToSend.append('product_list', JSON.stringify(selectedVegetables));
+      formDataToSend.append('status', formData.status);
+      formDataToSend.append('account_holder_name', formData.account_holder_name);
+      formDataToSend.append('bank_name', formData.bank_name);
+      formDataToSend.append('account_number', formData.account_number);
+      formDataToSend.append('IFSC_code', formData.IFSC_code);
+      if (profileImage) {
+        formDataToSend.append('profile_image', profileImage);
+      }
 
-      const response = await createFarmer(farmerPayload);
+      const response = await createFarmer(formDataToSend);
       console.log('Farmer created successfully:', response);
       setSuccess(true);
       
@@ -138,12 +149,7 @@ const AddFarmer = () => {
       }, 1500);
     } catch (err) {
       console.error('Error creating farmer:', err);
-      // if (err.response?.status === 401) {
-      //   setError('Session expired. Please login again.');
-      //   setTimeout(() => navigate('/login'), 2000);
-      // } else {
-      //   setError(err.response?.data?.message || err.message || 'Failed to create farmer. Please try again.');
-      // }
+      setError(err.response?.data?.message || err.message || 'Failed to create farmer');
     } finally {
       setIsLoading(false);
     }
@@ -185,6 +191,28 @@ const AddFarmer = () => {
           {/* Personal Information */}
           <div>
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Personal Information</h3>
+            
+            {/* Profile Image Upload */}
+            <div className="mb-6 flex items-center gap-6">
+              <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
+                {profileImagePreview ? (
+                  <img src={profileImagePreview} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-gray-400 text-3xl">👤</span>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Profile Image</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#0D7C66] file:text-white hover:file:bg-[#0a6354] file:cursor-pointer"
+                />
+                <p className="text-xs text-gray-500 mt-1">JPG, PNG or GIF. Max 2MB.</p>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Farmer Name */}
               <div>

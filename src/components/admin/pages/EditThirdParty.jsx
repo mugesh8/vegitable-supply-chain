@@ -6,6 +6,17 @@ const EditThirdParty = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   
+  const [profileImage, setProfileImage] = useState(null);
+  const [profileImagePreview, setProfileImagePreview] = useState(null);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setProfileImage(file);
+      setProfileImagePreview(URL.createObjectURL(file));
+    }
+  };
+
   const [formData, setFormData] = useState({
     thirdPartyName: 'Green Fields Farm',
     registrationNumber: 'GST123456',
