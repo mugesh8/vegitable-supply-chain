@@ -1,5 +1,6 @@
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import ProtectedRoute from './components/ProtectedRoute'
 import Login from './components/admin/auth/Login'
 import Signup from './components/admin/auth/Signup'
 import Dashboard from './components/admin/pages/Dashboard'
@@ -56,53 +57,53 @@ const App = () => {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
-        <Route path="/notifications" element={<Layout><Notifications /></Layout>} />
-        <Route path="/vendors" element={<Layout><VendorManagement /></Layout>} />
-        <Route path="/farmers" element={<Layout><Farmers /></Layout>} />
-        <Route path="/farmers/add" element={<Layout><AddFarmer /></Layout>} />
-        <Route path="/farmers/:id/edit" element={<Layout><EditFarmer /></Layout>} />
-        <Route path="/farmers/:id" element={<Layout><FarmerDetails /></Layout>} />
-        <Route path="/farmers/:id/orders" element={<Layout><FarmerIndividualOrderHistory /></Layout>} />
-        <Route path="/farmers/:id/payout" element={<Layout><FarmerPayout /></Layout>} />
-        <Route path="/vendors/:id" element={<Layout><VendorDetails /></Layout>} />
-        <Route path="/vendors/add" element={<Layout><AddVendorForm /></Layout>} />
-        <Route path="/vendors/:id/edit" element={<Layout><EditVendorDetails /></Layout>} />
-        <Route path="/suppliers" element={<Layout><SupplierDashboard /></Layout>} />
-        <Route path="/suppliers/add" element={<Layout><AddSupplierForm /></Layout>} />
-        <Route path="/suppliers/:id/edit" element={<Layout><EditSupplier /></Layout>} />
-        <Route path="/suppliers/:id" element={<Layout><SupplierDetails /></Layout>} />
-        <Route path="/suppliers/:id/orders" element={<Layout><SupplierIndividualOrderHistory /></Layout>} />
-        <Route path="/suppliers/:id/payout" element={<Layout><SupplierPayout /></Layout>} />
-        <Route path="/third-party" element={<Layout><ThirdPartyManagement /></Layout>} />
-        <Route path="/third-party/add" element={<Layout><AddThirdParty /></Layout>} />
-        <Route path="/third-party/:id/edit" element={<Layout><EditThirdParty /></Layout>} />
-        <Route path="/third-party/:id" element={<Layout><ThirdPartyDetails /></Layout>} />
-        <Route path="/third-party/:id/orders" element={<Layout><ThirdPartyIndividualOrderHistory /></Layout>} />
-        <Route path="/third-party/:id/payout" element={<Layout><ThirdPartyPayout /></Layout>} />
-        <Route path="/drivers" element={<Layout><DriverManagement /></Layout>} />
-        <Route path="/drivers/add" element={<Layout><AddDriver /></Layout>} />
-        <Route path="/drivers/:id/edit" element={<Layout><EditDriver /></Layout>} />
-        <Route path="/drivers/:id" element={<Layout><DriverDetails /></Layout>} />
-        <Route path="/drivers/:id/airport" element={<Layout><DriverAirportDelivery /></Layout>} />
-        <Route path="/payouts" element={<Layout><PayoutManagement /></Layout>} />
-        <Route path="/payout-labour" element={<Layout><PayoutLabour /></Layout>} />
-        <Route path="/payout-driver" element={<Layout><PayoutDriver /></Layout>} />
-        <Route path="/roles" element={<Layout><RolesPermissionSystem /></Layout>} />
-        <Route path="/labour" element={<Layout><LabourManagement /></Layout>} />
-        <Route path="/labour/add" element={<Layout><LabourAdd /></Layout>} />
-        <Route path="/labour/:id/edit" element={<Layout><LabourEdit /></Layout>} />
-        <Route path="/labour/:id" element={<Layout><LabourDetails /></Layout>} />
-        <Route path="/labour/attendance" element={<Layout><LabourAttendance /></Layout>} />
-        <Route path="/labour/work-assignment" element={<Layout><LabourWorkAssignment /></Layout>} />
-        <Route path="/reports" element={<Layout><ReportManagement /></Layout>} />
-        <Route path="/reports/farmer" element={<Layout><ReportFarmer /></Layout>} />
-        <Route path="/reports/labour" element={<Layout><ReportLabour /></Layout>} />
-        <Route path="/reports/invoice" element={<Layout><ReportInvoice /></Layout>} />
-        <Route path="/reports/payout" element={<Layout><ReportPayout /></Layout>} />
-        <Route path="/reports/order" element={<Layout><ReportOrder /></Layout>} />
-        <Route path="/products/add" element={<Layout><AddProduct /></Layout>} />
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/dashboard" element={<ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>} />
+        <Route path="/notifications" element={<ProtectedRoute><Layout><Notifications /></Layout></ProtectedRoute>} />
+        <Route path="/vendors" element={<ProtectedRoute><Layout><VendorManagement /></Layout></ProtectedRoute>} />
+        <Route path="/farmers" element={<ProtectedRoute><Layout><Farmers /></Layout></ProtectedRoute>} />
+        <Route path="/farmers/add" element={<ProtectedRoute><Layout><AddFarmer /></Layout></ProtectedRoute>} />
+        <Route path="/farmers/:id/edit" element={<ProtectedRoute><Layout><EditFarmer /></Layout></ProtectedRoute>} />
+        <Route path="/farmers/:id" element={<ProtectedRoute><Layout><FarmerDetails /></Layout></ProtectedRoute>} />
+        <Route path="/farmers/:id/orders" element={<ProtectedRoute><Layout><FarmerIndividualOrderHistory /></Layout></ProtectedRoute>} />
+        <Route path="/farmers/:id/payout" element={<ProtectedRoute><Layout><FarmerPayout /></Layout></ProtectedRoute>} />
+        <Route path="/vendors/:id" element={<ProtectedRoute><Layout><VendorDetails /></Layout></ProtectedRoute>} />
+        <Route path="/vendors/add" element={<ProtectedRoute><Layout><AddVendorForm /></Layout></ProtectedRoute>} />
+        <Route path="/vendors/:id/edit" element={<ProtectedRoute><Layout><EditVendorDetails /></Layout></ProtectedRoute>} />
+        <Route path="/suppliers" element={<ProtectedRoute><Layout><SupplierDashboard /></Layout></ProtectedRoute>} />
+        <Route path="/suppliers/add" element={<ProtectedRoute><Layout><AddSupplierForm /></Layout></ProtectedRoute>} />
+        <Route path="/suppliers/:id/edit" element={<ProtectedRoute><Layout><EditSupplier /></Layout></ProtectedRoute>} />
+        <Route path="/suppliers/:id" element={<ProtectedRoute><Layout><SupplierDetails /></Layout></ProtectedRoute>} />
+        <Route path="/suppliers/:id/orders" element={<ProtectedRoute><Layout><SupplierIndividualOrderHistory /></Layout></ProtectedRoute>} />
+        <Route path="/suppliers/:id/payout" element={<ProtectedRoute><Layout><SupplierPayout /></Layout></ProtectedRoute>} />
+        <Route path="/third-party" element={<ProtectedRoute><Layout><ThirdPartyManagement /></Layout></ProtectedRoute>} />
+        <Route path="/third-party/add" element={<ProtectedRoute><Layout><AddThirdParty /></Layout></ProtectedRoute>} />
+        <Route path="/third-party/:id/edit" element={<ProtectedRoute><Layout><EditThirdParty /></Layout></ProtectedRoute>} />
+        <Route path="/third-party/:id" element={<ProtectedRoute><Layout><ThirdPartyDetails /></Layout></ProtectedRoute>} />
+        <Route path="/third-party/:id/orders" element={<ProtectedRoute><Layout><ThirdPartyIndividualOrderHistory /></Layout></ProtectedRoute>} />
+        <Route path="/third-party/:id/payout" element={<ProtectedRoute><Layout><ThirdPartyPayout /></Layout></ProtectedRoute>} />
+        <Route path="/drivers" element={<ProtectedRoute><Layout><DriverManagement /></Layout></ProtectedRoute>} />
+        <Route path="/drivers/add" element={<ProtectedRoute><Layout><AddDriver /></Layout></ProtectedRoute>} />
+        <Route path="/drivers/:id/edit" element={<ProtectedRoute><Layout><EditDriver /></Layout></ProtectedRoute>} />
+        <Route path="/drivers/:id" element={<ProtectedRoute><Layout><DriverDetails /></Layout></ProtectedRoute>} />
+        <Route path="/drivers/:id/airport" element={<ProtectedRoute><Layout><DriverAirportDelivery /></Layout></ProtectedRoute>} />
+        <Route path="/payouts" element={<ProtectedRoute><Layout><PayoutManagement /></Layout></ProtectedRoute>} />
+        <Route path="/payout-labour" element={<ProtectedRoute><Layout><PayoutLabour /></Layout></ProtectedRoute>} />
+        <Route path="/payout-driver" element={<ProtectedRoute><Layout><PayoutDriver /></Layout></ProtectedRoute>} />
+        <Route path="/roles" element={<ProtectedRoute><Layout><RolesPermissionSystem /></Layout></ProtectedRoute>} />
+        <Route path="/labour" element={<ProtectedRoute><Layout><LabourManagement /></Layout></ProtectedRoute>} />
+        <Route path="/labour/add" element={<ProtectedRoute><Layout><LabourAdd /></Layout></ProtectedRoute>} />
+        <Route path="/labour/:id/edit" element={<ProtectedRoute><Layout><LabourEdit /></Layout></ProtectedRoute>} />
+        <Route path="/labour/:id" element={<ProtectedRoute><Layout><LabourDetails /></Layout></ProtectedRoute>} />
+        <Route path="/labour/attendance" element={<ProtectedRoute><Layout><LabourAttendance /></Layout></ProtectedRoute>} />
+        <Route path="/labour/work-assignment" element={<ProtectedRoute><Layout><LabourWorkAssignment /></Layout></ProtectedRoute>} />
+        <Route path="/reports" element={<ProtectedRoute><Layout><ReportManagement /></Layout></ProtectedRoute>} />
+        <Route path="/reports/farmer" element={<ProtectedRoute><Layout><ReportFarmer /></Layout></ProtectedRoute>} />
+        <Route path="/reports/labour" element={<ProtectedRoute><Layout><ReportLabour /></Layout></ProtectedRoute>} />
+        <Route path="/reports/invoice" element={<ProtectedRoute><Layout><ReportInvoice /></Layout></ProtectedRoute>} />
+        <Route path="/reports/payout" element={<ProtectedRoute><Layout><ReportPayout /></Layout></ProtectedRoute>} />
+        <Route path="/reports/order" element={<ProtectedRoute><Layout><ReportOrder /></Layout></ProtectedRoute>} />
+        <Route path="/products/add" element={<ProtectedRoute><Layout><AddProduct /></Layout></ProtectedRoute>} />
+        <Route path="/" element={localStorage.getItem('authToken') ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />} />
       </Routes>
     </Router>
   )

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { loginAdmin } from '../../../api/authApi';
@@ -13,6 +13,13 @@ const VeggiChainLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [navigate]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -52,10 +59,7 @@ const VeggiChainLogin = () => {
       setLoading(true);
       try {
         const data = await loginAdmin(formData.email, formData.password);
-        JSON.stringify(localStorage.setItem('token', data.token));
-        if (formData.rememberMe) {
-          localStorage.setItem('rememberMe', 'true');
-        }
+        localStorage.setItem('authToken', data.token);
         navigate('/dashboard');
       } catch (error) {
         setErrors({ general: error.message });
