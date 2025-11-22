@@ -229,8 +229,18 @@ const Farmers = () => {
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-[#B8F4D8] flex items-center justify-center text-[#0D5C4D] font-semibold text-sm">
-                        {farmer.farmer_name?.substring(0, 2).toUpperCase()}
+                      <div className="w-10 h-10 rounded-full bg-[#B8F4D8] flex items-center justify-center text-[#0D5C4D] font-semibold text-sm overflow-hidden">
+                        {farmer.profile_image ? (
+                          <img 
+                            src={`http://localhost:8000${farmer.profile_image}`}
+                            alt={farmer.farmer_name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                            }}
+                          />
+                        ) : null}
+                        {!farmer.profile_image && farmer.farmer_name?.substring(0, 2).toUpperCase()}
                       </div>
                       <div>
                         <div className="font-semibold text-[#0D5C4D]">{farmer.farmer_name}</div>

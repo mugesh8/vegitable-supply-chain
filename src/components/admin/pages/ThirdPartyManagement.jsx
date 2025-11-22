@@ -1,13 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, MoreVertical } from 'lucide-react';
+import { Search, Plus, MoreVertical, Eye, Edit, Trash2 } from 'lucide-react';
 import ConfirmDeleteModal from '../../common/ConfirmDeleteModal';
+import { getAllThirdParties } from '../../../api/thirdPartyApi';
 
 const ThirdPartyManagement = () => {
   const navigate = useNavigate();
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const dropdownRef = useRef(null);
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, thirdPartyId: null, thirdPartyName: '' });
+  const [thirdParties, setThirdParties] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -20,6 +25,42 @@ const ThirdPartyManagement = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Fetch third parties data from API
+  useEffect(() => {
+    const fetchThirdParties = async () => {
+      try {
+        setLoading(true);
+        const response = await getAllThirdParties();
+        console.log('API Response:', response);
+        if (response.success) {
+          setThirdParties(response.data);
+        } else {
+          setError(response.message || 'Failed to fetch third parties');
+        }
+      } catch (err) {
+        console.error('Error fetching third parties:', err);
+        setError(err.message || 'An error occurred while fetching third parties');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchThirdParties();
+  }, []);
+
+  const toggleDropdown = (thirdPartyId, event) => {
+    if (openDropdown === thirdPartyId) {
+      setOpenDropdown(null);
+    } else {
+      const rect = event.currentTarget.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + window.scrollY + 8,
+        left: rect.right + window.scrollX - 128 // 128px is dropdown width (w-32)
+      });
+      setOpenDropdown(thirdPartyId);
+    }
+  };
+
   const handleAction = (action, thirdPartyId, thirdPartyName) => {
     setOpenDropdown(null);
     if (action === 'view') {
@@ -31,104 +72,75 @@ const ThirdPartyManagement = () => {
     }
   };
 
-  const stats = [
-    { label: 'Total Third Party', value: '86', color: 'bg-gradient-to-r from-[#D1FAE5] to-[#A7F3D0]' },
-    { label: 'Active Third Party', value: '72', color: 'bg-gradient-to-r from-[#6EE7B7] to-[#34D399]' },
-    { label: 'Pending Payouts', value: '₹12.4 L', color: 'bg-gradient-to-r from-[#10B981] to-[#059669]' },
-    { label: 'Total Paid (Month)', value: '₹2.8 L', color: 'bg-gradient-to-r from-[#047857] to-[#065F46]' }
-  ];
+  // Transform API data to match component structure
+  const transformThirdPartiesData = (apiData) => {
+    return apiData.map(thirdParty => ({
+      id: thirdParty.tpid,
+      name: thirdParty.third_party_name,
+      thirdPartyId: `ID: TP-${String(thirdParty.tpid).padStart(3, '0')}`,
+      // Use profile image if available, otherwise generate avatar
+      profileImage: thirdParty.profile_image,
+      avatar: thirdParty.third_party_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase(),
+      products: thirdParty.detailed_products?.map(product => ({
+        name: product.product_name,
+        color: 'bg-[#D4F4E8] text-[#047857]'
+      })) || [],
+      contact: `+91 ${thirdParty.phone}`,
+      email: thirdParty.email,
+      location: `${thirdParty.city}, ${thirdParty.state}`,
+      status: thirdParty.status.charAt(0).toUpperCase() + thirdParty.status.slice(1),
+      dues: '₹0' // This would need to be calculated based on actual data
+    }));
+  };
 
-  const thirdParties = [
-    {
-      id: 1,
-      name: 'Green Fields Farm',
-      thirdPartyId: 'ID: TP-001',
-      avatar: 'GF',
-      products: [
-        { name: 'Carrot', color: 'bg-yellow-100 text-yellow-700' },
-        { name: 'Cabbage', color: 'bg-purple-100 text-purple-700' }
-      ],
-      contact: '+91 98765 43210',
-      email: 'contact@greenfields.com',
-      location: 'Tamil Nadu, India',
-      status: 'Active',
-      dues: '₹6,400'
-    },
-    {
-      id: 2,
-      name: 'Fresh Vegetable Supply Co.',
-      thirdPartyId: 'ID: TP-002',
-      avatar: 'FV',
-      products: [
-        { name: 'Tomato', color: 'bg-red-100 text-red-700' },
-        { name: 'Cucumber', color: 'bg-yellow-100 text-yellow-700' }
-      ],
-      contact: '+91 98765 43211',
-      email: 'sales@freshveg.com',
-      location: 'Kerala, India',
-      status: 'Active',
-      dues: '₹0'
-    },
-    {
-      id: 3,
-      name: 'Organic Valley Farmers',
-      thirdPartyId: 'ID: TP-003',
-      avatar: 'OV',
-      products: [
-        { name: 'Chili', color: 'bg-red-100 text-red-700' },
-        { name: 'Broccoli', color: 'bg-green-100 text-green-700' }
-      ],
-      contact: '+91 98765 43212',
-      email: 'info@organicvalley.in',
-      location: 'Karnataka, India',
-      status: 'Active',
-      dues: '₹12,300'
-    },
-    {
-      id: 4,
-      name: 'Agri Logistics Partners',
-      thirdPartyId: 'ID: TP-004',
-      avatar: 'AL',
-      products: [
-        { name: 'Potato', color: 'bg-blue-100 text-blue-700' },
-        { name: 'Onion', color: 'bg-purple-100 text-purple-700' }
-      ],
-      contact: '+91 98765 43213',
-      email: 'logistics@agripartners.com',
-      location: 'Maharashtra, India',
-      status: 'Active',
-      dues: '₹6,600'
-    },
-    {
-      id: 5,
-      name: 'Sunrise Farms',
-      thirdPartyId: 'ID: TP-005',
-      avatar: 'SF',
-      products: [
-        { name: 'Capsicum', color: 'bg-red-100 text-red-700' }
-      ],
-      contact: '+91 98765 43214',
-      email: 'contact@sunrisefarms.in',
-      location: 'Gujarat, India',
-      status: 'Inactive',
-      dues: '₹0'
-    },
-    {
-      id: 6,
-      name: 'Harvest Supply Chain',
-      thirdPartyId: 'ID: TP-006',
-      avatar: 'HS',
-      products: [
-        { name: 'Carrot', color: 'bg-yellow-100 text-yellow-700' },
-        { name: 'Coriander', color: 'bg-green-100 text-green-700' }
-      ],
-      contact: '+91 98765 43215',
-      email: 'support@harvest.in',
-      location: 'Punjab, India',
-      status: 'Active',
-      dues: '₹21,500'
-    }
-  ];
+  // Calculate statistics based on fetched data
+  const calculateStats = (data) => {
+    if (!data || data.length === 0) return [];
+    
+    const activeCount = data.filter(tp => tp.status === 'active').length;
+    const totalCount = data.length;
+    
+    return [
+      { label: 'Total Third Party', value: totalCount.toString(), change: '+12%', color: 'bg-gradient-to-r from-[#D1FAE5] to-[#A7F3D0]' },
+      { label: 'Active Third Party', value: activeCount.toString(), change: '+8%', color: 'bg-gradient-to-r from-[#6EE7B7] to-[#34D399]' },
+      { label: 'Pending Payouts', value: '₹12.4 L', change: '24 Third Party', color: 'bg-gradient-to-r from-[#10B981] to-[#059669]' },
+      { label: 'Total Paid (Month)', value: '₹2.8 L', change: '156 Transactions', color: 'bg-gradient-to-r from-[#047857] to-[#065F46]' }
+    ];
+  };
+
+  const transformedThirdParties = transformThirdPartiesData(thirdParties);
+  const stats = calculateStats(thirdParties);
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="p-4 sm:p-6 lg:p-8">
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg text-[#0D5C4D]">Loading third parties...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="p-4 sm:p-6 lg:p-8">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+          <div className="text-red-800 text-center">
+            <h3 className="font-bold text-lg mb-2">Error Loading Data</h3>
+            <p>{error}</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="mt-4 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
@@ -149,7 +161,10 @@ const ThirdPartyManagement = () => {
             className={`${stat.color} rounded-2xl p-6 ${index === 2 || index === 3 ? 'text-white' : 'text-[#0D5C4D]'}`}
           >
             <div className="text-sm font-medium mb-2 opacity-90">{stat.label}</div>
-            <div className="text-4xl font-bold">{stat.value}</div>
+            <div className="text-4xl font-bold mb-2">{stat.value}</div>
+            <div className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${index === 2 || index === 3 ? 'bg-white/20 text-white' : 'bg-white/60 text-[#0D5C4D]'}`}>
+              {stat.change}
+            </div>
           </div>
         ))}
       </div>
@@ -178,7 +193,7 @@ const ThirdPartyManagement = () => {
               </tr>
             </thead>
             <tbody>
-              {thirdParties.map((thirdParty, index) => (
+              {transformedThirdParties.map((thirdParty, index) => (
                 <tr 
                   key={thirdParty.id} 
                   className={`border-b border-[#D0E0DB] hover:bg-[#F0F4F3] transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-[#F0F4F3]/30'}`}
@@ -186,7 +201,20 @@ const ThirdPartyManagement = () => {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-[#B8F4D8] flex items-center justify-center text-[#0D5C4D] font-semibold text-sm">
-                        {thirdParty.avatar}
+                        {thirdParty.profileImage ? (
+                          <img 
+                            src={`http://localhost:8000${thirdParty.profileImage}`} 
+                            alt={thirdParty.name}
+                            className="w-10 h-10 rounded-full object-cover"
+                            onError={(e) => {
+                              // Fallback to avatar if image fails to load
+                              e.target.style.display = 'none';
+                              e.target.nextSibling.style.display = 'flex';
+                            }}
+                          />
+                        ) : (
+                          thirdParty.avatar
+                        )}
                       </div>
                       <div>
                         <div className="font-semibold text-[#0D5C4D]">{thirdParty.name}</div>
@@ -231,37 +259,15 @@ const ThirdPartyManagement = () => {
                   </td>
 
                   <td className="px-6 py-4">
-                    <div className="relative" ref={openDropdown === thirdParty.id ? dropdownRef : null}>
-                      <button 
-                        onClick={() => setOpenDropdown(openDropdown === thirdParty.id ? null : thirdParty.id)}
-                        className="text-[#6B8782] hover:text-[#0D5C4D] transition-colors p-1 hover:bg-[#F0F4F3] rounded"
-                      >
-                        <MoreVertical size={20} />
-                      </button>
-                      
-                      {openDropdown === thirdParty.id && (
-                        <div className="absolute right-0 mt-2 w-32 bg-white rounded-lg shadow-lg border border-[#D0E0DB] py-1 z-10">
-                          <button
-                            onClick={() => handleAction('view', thirdParty.id)}
-                            className="w-full text-left px-4 py-2 text-sm text-[#0D5C4D] hover:bg-[#F0F4F3] transition-colors"
-                          >
-                            View
-                          </button>
-                          <button
-                            onClick={() => handleAction('edit', thirdParty.id)}
-                            className="w-full text-left px-4 py-2 text-sm text-[#0D5C4D] hover:bg-[#F0F4F3] transition-colors"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleAction('delete', thirdParty.id, thirdParty.name)}
-                            className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-[#F0F4F3] transition-colors"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleDropdown(thirdParty.id, e);
+                      }}
+                      className="text-[#6B8782] hover:text-[#0D5C4D] transition-colors p-1 hover:bg-[#F0F4F3] rounded"
+                    >
+                      <MoreVertical size={20} />
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -271,7 +277,7 @@ const ThirdPartyManagement = () => {
 
         <div className="flex items-center justify-between px-6 py-4 bg-[#F0F4F3] border-t border-[#D0E0DB]">
           <div className="text-sm text-[#6B8782]">
-            Showing 6 of 86 third party
+            Showing {transformedThirdParties.length} of {transformedThirdParties.length} third party
           </div>
           <div className="flex items-center gap-2">
             <button className="px-3 py-2 text-[#6B8782] hover:bg-[#D0E0DB] rounded-lg transition-colors">
@@ -304,6 +310,41 @@ const ThirdPartyManagement = () => {
           </div>
         </div>
       </div>
+
+      {/* Dropdown Menu - Fixed Position Outside Table */}
+      {openDropdown && (
+        <div 
+          ref={dropdownRef}
+          className="fixed w-32 bg-white rounded-lg shadow-lg border border-[#D0E0DB] py-1 z-[100]"
+          style={{ 
+            top: `${dropdownPosition.top}px`, 
+            left: `${dropdownPosition.left}px` 
+          }}
+        >
+          <button
+            onClick={() => handleAction('view', openDropdown)}
+            className="w-full text-left px-4 py-2 text-sm text-[#0D5C4D] hover:bg-[#F0F4F3] transition-colors flex items-center gap-2"
+          >
+            <Eye size={14} />
+            View
+          </button>
+          <button
+            onClick={() => handleAction('edit', openDropdown)}
+            className="w-full text-left px-4 py-2 text-sm text-[#0D5C4D] hover:bg-[#F0F4F3] transition-colors flex items-center gap-2"
+          >
+            <Edit size={14} />
+            Edit
+          </button>
+          <button
+            onClick={() => handleAction('delete', openDropdown, 
+              transformedThirdParties.find(tp => tp.id === openDropdown)?.name)}
+            className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-[#F0F4F3] transition-colors flex items-center gap-2"
+          >
+            <Trash2 size={14} />
+            Delete
+          </button>
+        </div>
+      )}
 
       <ConfirmDeleteModal
         isOpen={deleteModal.isOpen}

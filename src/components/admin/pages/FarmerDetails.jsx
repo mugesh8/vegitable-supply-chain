@@ -101,7 +101,23 @@ const FarmerDetails = () => {
       </div>
 
       <div className="rounded-lg shadow-sm p-6 mb-6">
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-6">         
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+          <div className="w-24 h-24 bg-teal-800 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+            {farmer?.profile_image ? (
+              <img 
+                src={`http://localhost:8000${farmer.profile_image}`}
+                alt={farmer?.farmer_name || 'Farmer'}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                }}
+              />
+            ) : null}
+            {!farmer?.profile_image && (
+              <span className="text-white text-3xl font-bold">{farmer?.farmer_name?.substring(0, 2).toUpperCase() || 'FR'}</span>
+            )}
+          </div>
+          
           <div className="flex-1">
             <h2 className="text-2xl font-bold text-gray-800 mb-2">{farmer?.farmer_name || 'N/A'}</h2>
             <p className="text-gray-600 mb-2">Farmer ID: {farmer?.registration_number || 'N/A'}</p>

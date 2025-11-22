@@ -1,50 +1,104 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Plus, X } from 'lucide-react';
+import { getThirdPartyById, updateThirdParty } from '../../../api/thirdPartyApi';
+import { getAllProducts } from '../../../api/productApi'; // Import product API
 
 const EditThirdParty = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   
-  const [profileImage, setProfileImage] = useState(null);
-  const [profileImagePreview, setProfileImagePreview] = useState(null);
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setProfileImage(file);
-      setProfileImagePreview(URL.createObjectURL(file));
-    }
-  };
-
   const [formData, setFormData] = useState({
-    thirdPartyName: 'Green Fields Farm',
-    registrationNumber: 'GST123456',
-    address: '123 Farm Road, Coimbatore District',
-    city: 'Coimbatore',
-    state: 'Tamil Nadu',
-    pincode: '641001',
-    contactPerson: 'John Doe',
-    tapeColor: 'Blue',
-    dealingPerson: 'Jane Smith',
-    primaryPhone: '+91 98765 43210',
-    secondaryPhone: '+91 98765 43211',
-    email: 'contact@greenfields.com',
-    accountHolderName: 'Green Fields Farm',
-    bankName: 'HDFC Bank',
-    accountNumber: '1234567890',
-    ifscCode: 'HDFC0001234'
+    thirdPartyName: '',
+    registrationNumber: '',
+    address: '',
+    city: '',
+    state: '',
+    pincode: '',
+    contactPerson: '',
+    tapeColor: '',
+    dealingPerson: '',
+    primaryPhone: '',
+    secondaryPhone: '',
+    email: '',
+    accountHolderName: '',
+    bankName: '',
+    accountNumber: '',
+    ifscCode: ''
   });
 
-  const [selectedVegetables, setSelectedVegetables] = useState([
-    { name: 'Carrot', color: 'bg-yellow-100 text-yellow-700' },
-    { name: 'Cabbage', color: 'bg-purple-100 text-purple-700' }
-  ]);
+  const [selectedVegetables, setSelectedVegetables] = useState([]);
+  const [availableVegetables, setAvailableVegetables] = useState([]);
+  
+  // Add profile image state
+  const [profileImage, setProfileImage] = useState(null);
+  const [profileImagePreview, setProfileImagePreview] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const availableVegetables = [
-    'Tomato', 'Onion', 'Potato', 'Cabbage', 'Carrot', 'Broccoli', 
-    'Cauliflower', 'Spinach', 'Lettuce', 'Cucumber', 'Pepper', 'Eggplant'
-  ];
+  // Fetch products from API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await getAllProducts(1, 100);
+        const products = response.data || [];
+        setAvailableVegetables(products.map(p => ({ id: p.pid, name: p.product_name })));
+      } catch (error) {
+        console.error('Failed to fetch products:', error);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  // Fetch third party data when component mounts
+  useEffect(() => {
+    const fetchThirdParty = async () => {
+      if (!id) return;
+      
+      try {
+        setLoading(true);
+        const response = await getThirdPartyById(id);
+        const thirdParty = response.data;
+        
+        // Set form data
+        setFormData({
+          thirdPartyName: thirdParty.third_party_name || '',
+          registrationNumber: thirdParty.registration_number || '',
+          address: thirdParty.address || '',
+          city: thirdParty.city || '',
+          state: thirdParty.state || '',
+          pincode: thirdParty.pin_code || '',
+          contactPerson: thirdParty.contact_person || '',
+          tapeColor: thirdParty.tape_color || '',
+          dealingPerson: thirdParty.dealing_person || '',
+          primaryPhone: thirdParty.phone || '',
+          secondaryPhone: thirdParty.secondary_phone || '',
+          email: thirdParty.email || '',
+          accountHolderName: thirdParty.account_holder_name || '',
+          bankName: thirdParty.bank_name || '',
+          accountNumber: thirdParty.account_number || '',
+          ifscCode: thirdParty.IFSC_code || ''
+        });
+        
+        // Set selected vegetables
+        if (thirdParty.detailed_products) {
+          setSelectedVegetables(thirdParty.detailed_products.map(product => product.pid));
+        }
+        
+        // Set profile image preview if exists
+        if (thirdParty.profile_image) {
+          setProfileImagePreview(`http://localhost:8000${thirdParty.profile_image}`);
+        }
+      } catch (err) {
+        console.error('Error fetching third party:', err);
+        setError('Failed to load third party data');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchThirdParty();
+  }, [id]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -55,10 +109,66 @@ const EditThirdParty = () => {
     setSelectedVegetables(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e) => {
+  // Add handleImageChange function
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setProfileImage(file);
+      setProfileImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    navigate('/third-party');
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Prepare data as JSON object
+      const submitData = {
+        third_party_name: formData.thirdPartyName,
+        registration_number: formData.registrationNumber,
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+        pin_code: formData.pincode,
+        contact_person: formData.contactPerson,
+        tape_color: formData.tapeColor,
+        dealing_person: formData.dealingPerson,
+        phone: formData.primaryPhone,
+        secondary_phone: formData.secondaryPhone,
+        email: formData.email,
+        product_list: selectedVegetables.map(veg => veg.id || veg), // Extract IDs
+        account_holder_name: formData.accountHolderName,
+        bank_name: formData.bankName,
+        account_number: formData.accountNumber,
+        IFSC_code: formData.ifscCode
+      };
+
+      // Call the API with JSON data and profile image
+      const response = await updateThirdParty(id, submitData, profileImage);
+      console.log('API Response:', response);
+      
+      // Navigate back to third party list on success
+      navigate('/third-party');
+    } catch (err) {
+      console.error('Error updating third party:', err);
+      // Log more details about the error for debugging
+      if (err.response) {
+        console.error('Error response data:', err.response.data);
+        console.error('Error response status:', err.response.status);
+        console.error('Error response headers:', err.response.headers);
+      }
+      
+      // Handle specific error messages from the API
+      if (err.response && err.response.data && err.response.data.message) {
+        setError(`Error: ${err.response.data.message}`);
+      } else {
+        setError(err.message || 'Failed to update third party. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -76,8 +186,37 @@ const EditThirdParty = () => {
 
         <div className="bg-white rounded-2xl shadow-sm border border-[#D0E0DB] p-6">
         <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="text-red-800 text-sm">{error}</div>
+            </div>
+          )}
+          
           <div>
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Personal Information</h3>
+            
+            {/* Profile Image Upload */}
+            <div className="mb-6 flex items-center gap-6">
+              <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
+                {profileImagePreview ? (
+                  <img src={profileImagePreview} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-gray-400 text-3xl">👤</span>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Profile Image</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#0D7C66] file:text-white hover:file:bg-[#0a6354] file:cursor-pointer"
+                />
+                <p className="text-xs text-gray-500 mt-1">JPG, PNG or GIF. Max 2MB.</p>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -263,6 +402,7 @@ const EditThirdParty = () => {
             </div>
           </div>
 
+          {/* Product List */}
           <div>
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Product List</h3>
             <div>
@@ -270,38 +410,48 @@ const EditThirdParty = () => {
                 Vegetables Supplied <span className="text-red-500">*</span>
               </label>
               <select
+                onChange={(e) => {
+                  const value = parseInt(e.target.value);
+                  if (value && !selectedVegetables.includes(value)) {
+                    setSelectedVegetables([...selectedVegetables, value]);
+                  }
+                  e.target.value = '';
+                }}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D7C66] focus:border-transparent text-sm appearance-none bg-white mb-3"
               >
                 <option value="">Select items (Multiple selection)</option>
-                {availableVegetables.map(veg => (
-                  <option key={veg} value={veg}>{veg}</option>
+                {availableVegetables.filter(veg => !selectedVegetables.includes(veg.id)).map(veg => (
+                  <option key={veg.id} value={veg.id}>{veg.name}</option>
                 ))}
               </select>
 
-              <div className="flex flex-wrap gap-2">
-                {selectedVegetables.map((veg, index) => (
-                  <span
-                    key={index}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium ${veg.color} flex items-center gap-2`}
-                  >
-                    {veg.name}
-                    <button
-                      type="button"
-                      onClick={() => removeVegetable(index)}
-                      className="hover:opacity-70"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </span>
-                ))}
-                <button
-                  type="button"
-                  className="px-3 py-1.5 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition-colors flex items-center gap-1"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add More
-                </button>
-              </div>
+              {/* Selected Vegetables */}
+              {selectedVegetables.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {selectedVegetables.map((vegId, index) => {
+                    const veg = availableVegetables.find(v => v.id === vegId);
+                    return (
+                      <span
+                        key={index}
+                        className="px-3 py-1.5 rounded-lg text-sm font-medium bg-blue-100 text-blue-700 flex items-center gap-2"
+                      >
+                        {veg?.name}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newSelected = [...selectedVegetables];
+                            newSelected.splice(index, 1);
+                            setSelectedVegetables(newSelected);
+                          }}
+                          className="hover:opacity-70"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
 
@@ -371,12 +521,16 @@ const EditThirdParty = () => {
             </div>
           </div>
 
+          {/* Form Actions */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6 border-t border-gray-200">
             <button
               type="submit"
-              className="w-full sm:w-auto px-8 py-3 bg-[#0D7C66] hover:bg-[#0a6354] text-white font-semibold rounded-lg transition-colors shadow-sm"
+              disabled={loading}
+              className={`w-full sm:w-auto px-8 py-3 bg-[#0D7C66] text-white font-semibold rounded-lg transition-colors shadow-sm ${
+                loading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-[#0a6354]'
+              }`}
             >
-              Update Third Party
+              {loading ? 'Updating...' : 'Update Third Party'}
             </button>
             <button
               type="button"
